@@ -1,9 +1,14 @@
+import DeployButton from "@/components/deploy-button";
+import { EnvVarWarning } from "@/components/env-var-warning";
+import HeaderAuth from "@/components/header-auth";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import Link from "next/link";
 import "./globals.css";
-import { Footer } from "@/components/footer";
+import { Footer } from "@/app/footer";
 import Navbar from "@/components/ui/Navbar";
-import { createClient } from "@/utils/supabase/server";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -20,16 +25,11 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
@@ -39,13 +39,18 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col">
-            <Navbar user={user} />
-            {children}
+          <main className="min-h-screen flex flex-col items-center w-full mx-auto">
+            <Navbar />
+              <div>
+                {children}
+              </div>
+
+              
+            
           </main>
-          <Footer />
         </ThemeProvider>
       </body>
+      <Footer />
     </html>
   );
 }

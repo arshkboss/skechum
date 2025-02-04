@@ -1,4 +1,4 @@
-
+"use client"
 
 import { signOutAction } from "@/app/actions";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
