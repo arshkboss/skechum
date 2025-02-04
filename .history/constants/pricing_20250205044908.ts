@@ -1,0 +1,61 @@
+interface PricingPlan {
+  credits: number
+  price: number
+  pricePerCredit: number
+  features: readonly string[]
+  originalPrice?: number
+  isPopular?: boolean
+  image: string
+  imageAlt: string
+}
+
+
+
+export const pricingPlans: readonly PricingPlan[] = [
+  {
+    credits: 100,
+    price: 8,
+    pricePerCredit: 0.08,
+    image: "/pricing-images/100.svg",
+    imageAlt: "100 credits",
+    features: [
+      "100 credits",
+      "Commercial use",
+
+      "SVG editor",
+      "SVG, PNG, JPG export"
+    ] as const
+  },
+  {
+    credits: 500,
+    price: 14,
+    pricePerCredit: 0.07,
+    image: "/pricing-images/500.svg",
+    imageAlt: "500 credits",
+    features: [
+      "500 credits",
+      "Commercial use",
+
+
+
+      "SVG editor",
+      "SVG, PNG, JPG export"
+    ] as const
+  },
+  {
+    credits: 1000,
+    price: 24,
+    pricePerCredit: 0.048,
+    originalPrice: 30,
+    isPopular: true,
+    image: "/pricing-card/1000.svg",
+    imageAlt: "1000 credits",
+    features: [
+      "1000 credits",
+      "Commercial use",
+      "SVG editor",
+      "SVG, PNG, JPG export"
+    ] as const
+
+  }
+] as const 

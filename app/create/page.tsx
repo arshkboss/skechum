@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { StyleSelector } from "@/components/ui/style-selector"
 import { styles, sizes } from "@/constants/styles"
+import { handleGenerate } from "@/app/actions"
 
 export default function GeneratePage() {
   const [loading, setLoading] = useState(false)
@@ -80,7 +81,7 @@ export default function GeneratePage() {
                 </div>
               </div>
 
-              <Button
+              <Button id="generate-button"
                 disabled={loading || !prompt || !selectedStyle || !selectedSize}
                 onClick={handleGenerate}
                 className="w-full"
