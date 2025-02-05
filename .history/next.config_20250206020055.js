@@ -1,11 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    domains: ['utfs.io', 'lh3.googleusercontent.com', 'hnklpqevocjiprqdqkef.supabase.co'],
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // ... other config
+  webpack: (config, { isServer }) => {
+    // ... any webpack config
+    return config
   },
-  // Add this to allow connections from ngrok and other external sources
+  // Add this to allow connections from ngrok
   async headers() {
     return [
       {
@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
             key: 'Access-Control-Allow-Origin',
             value: '*',
           },
+          // Add these headers for WebSocket support
           {
             key: 'Access-Control-Allow-Methods',
             value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT',
@@ -27,10 +28,6 @@ const nextConfig: NextConfig = {
       },
     ]
   },
-  webpack: (config, { isServer }) => {
-    // Any webpack config if needed
-    return config
-  },
-};
+}
 
-export default nextConfig;
+module.exports = nextConfig 

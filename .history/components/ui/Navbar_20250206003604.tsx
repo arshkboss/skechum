@@ -16,22 +16,13 @@ export default function Navbar({ user }: { user: any }) {
 
   const routes = [
     {
-      href: "/explore",
-      label: "Explore",
-    },
-    {
       href: "/create",
-      label: "Create",
+      label: "Create Illustations",
     },
     {
-      href: "/pricing",
-      label: "Pricing",
+      href: "/explore",
+      label: "Explore Gallery",
     },
-    {
-      href: "/about",
-      label: "About",
-    },
-   
   ]
 
   return (
@@ -62,7 +53,7 @@ export default function Navbar({ user }: { user: any }) {
           ))}
         </nav>
 
-        
+        {/* Theme Switcher */}
         <div className="ml-auto flex items-center space-x-4">
           
           <AuthButton user={user} />

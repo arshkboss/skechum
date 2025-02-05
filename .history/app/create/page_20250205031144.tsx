@@ -42,7 +42,7 @@ export default function GeneratePage() {
                 <Textarea
                   id="prompt"
                   placeholder="A magical forest with glowing mushrooms and fairy lights..."
-                  className="h-16"
+                  className="h-24"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 />

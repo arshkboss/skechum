@@ -76,11 +76,17 @@ export function Footer() {
         
       </div>
       <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground max-w-full mx-auto pb-8 flex justify-center items-center">
-          <div className="flex items-center gap-4 flex-col justify-center px-4">
-<p>© {new Date().getFullYear()} Skechum. All rights reserved. Built with ❤️ by <Link href="https://fluidpixls.com" className="text-foreground">FluidPixls</Link></p>
+          <div className="flex items-center gap-4 flex-col justify-center">
 
+          <p>© {new Date().getFullYear()} Skechum. All rights reserved. Built with ❤️ by <Link href="https://fluidpixls.com" className="text-foreground">FluidPixls</Link></p>
+          
           </div>
-         <ThemeToggle />
+          
+
+          
+          
+          
+        <ThemeToggle />
       
       </div>
     </footer>

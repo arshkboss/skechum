@@ -26,11 +26,7 @@ export default function Navbar({ user }: { user: any }) {
     {
       href: "/pricing",
       label: "Pricing",
-    },
-    {
-      href: "/about",
-      label: "About",
-    },
+    }
    
   ]
 

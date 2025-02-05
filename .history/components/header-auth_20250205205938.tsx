@@ -1,16 +1,14 @@
 import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import Image from "next/image";
+
 export default function AuthButton({ user }: { user: any }) {
   const fullName = user?.identities?.[0]?.identity_data?.full_name || user?.email;
-  const avtar=user?.identities?.[0]?.identity_data?.avatar_url;
+
 
   return user ? (
     <div className="flex items-center gap-4">
-      
       <p>Hey, {fullName}!</p>
-      <Image src={avtar} alt={fullName} width={32} height={32} className="rounded-full" />
       <form action={signOutAction}>
         <Button type="submit" variant="outline">
           Sign out

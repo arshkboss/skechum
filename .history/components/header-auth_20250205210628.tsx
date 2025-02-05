@@ -8,9 +8,8 @@ export default function AuthButton({ user }: { user: any }) {
 
   return user ? (
     <div className="flex items-center gap-4">
-      
+      <Image src={avtar} alt={fullName} width={32} height={32} />
       <p>Hey, {fullName}!</p>
-      <Image src={avtar} alt={fullName} width={32} height={32} className="rounded-full" />
       <form action={signOutAction}>
         <Button type="submit" variant="outline">
           Sign out

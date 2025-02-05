@@ -2,8 +2,16 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { MoonIcon, SunIcon } from "lucide-react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import AuthButton from "@/components/header-auth"
 
 /**
@@ -11,27 +19,18 @@ import AuthButton from "@/components/header-auth"
  * Provides navigation and theme switching functionality
  */
 export default function Navbar({ user }: { user: any }) {
-  
+  const { setTheme } = useTheme()
   const pathname = usePathname()
 
   const routes = [
     {
-      href: "/explore",
-      label: "Explore",
-    },
-    {
       href: "/create",
-      label: "Create",
+      label: "Create Illustations",
     },
     {
-      href: "/pricing",
-      label: "Pricing",
+      href: "/explore",
+      label: "Explore Gallery",
     },
-    {
-      href: "/about",
-      label: "About",
-    },
-   
   ]
 
   return (
@@ -62,9 +61,8 @@ export default function Navbar({ user }: { user: any }) {
           ))}
         </nav>
 
-        
-        <div className="ml-auto flex items-center space-x-4">
-          
+        {/* Theme Switcher */}
+        <div>
           <AuthButton user={user} />
         </div>
       </div>

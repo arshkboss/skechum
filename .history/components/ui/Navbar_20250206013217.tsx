@@ -16,22 +16,13 @@ export default function Navbar({ user }: { user: any }) {
 
   const routes = [
     {
-      href: "/explore",
-      label: "Explore",
-    },
-    {
       href: "/create",
       label: "Create",
     },
     {
-      href: "/pricing",
-      label: "Pricing",
+      href: "/explore",
+      label: "Explore",
     },
-    {
-      href: "/about",
-      label: "About",
-    },
-   
   ]
 
   return (
