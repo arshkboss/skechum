@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkAuth } from "@/utils/auth-check";
 import { initializeUserCredits } from "@/utils/credits";
-import { generateImage } from "@/utils/images";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -149,37 +148,16 @@ export const signOutAction = async () => {
 };
 
 export async function handleGenerate(formData: FormData) {
+  // Check authentication when generate is clicked
   const user = await checkAuth();
   
-  if (!user) {
-    return redirect("/sign-in");
-  }
-  
-  try {
-    const prompt = formData.get("prompt") as string;
-    const style = formData.get("style") as string;
-    const format = formData.get("format") as "PNG" | "SVG";
-    const isColored = formData.get("isColored") === "true";
+  if (user) {
+    // Handle the generation logic here
+    // You can access user.id, user.email etc
     
-    if (!prompt || !style || !format) {
-      throw new Error("Missing required fields");
-    }
-    
-    const result = await generateImage({
-      userId: user.id,
-      prompt,
-      style,
-      format,
-      isColored,
-    });
-    
-    return result;
-  } catch (error: any) {
-    if (error.message === "Insufficient credits") {
-      return redirect("/pricing");
-    }
-    
-    console.error("Generation error:", error);
-    throw error;
+    // Example:
+    // const prompt = formData.get('prompt')
+    // const result = await generateImage(prompt, user.id)
+    // return result
   }
 }
