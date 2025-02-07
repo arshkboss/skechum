@@ -1,7 +1,7 @@
 "use client"
 
-
-import { motion } from "motion/react"
+import { useState } from "react"
+import { motion } from "framer-motion"
 import { Download, Heart } from "lucide-react"
 import { Card } from "./card"
 import { Button } from "./button"
