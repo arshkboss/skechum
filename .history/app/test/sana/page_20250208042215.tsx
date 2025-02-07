@@ -221,9 +221,6 @@ export default function SanaTestPage() {
     }
   }
 
-  // Add a function to check if prompt is valid
-  const isValidPrompt = (text: string) => text.trim().length >= 3
-
   return (
     <div className="container mx-auto p-8">
       <Tabs defaultValue="generate" className="space-y-6">
@@ -322,12 +319,7 @@ export default function SanaTestPage() {
                 </div>
 
                 <Button 
-                  disabled={
-                    status === 'generating' || 
-                    status === 'queued' || 
-                    imageLoading || 
-                    !isValidPrompt(prompt)
-                  }
+                  disabled={status === 'generating' || status === 'queued' || imageLoading}
                   onClick={handleGenerate}
                   className="w-full"
                 >
@@ -336,11 +328,6 @@ export default function SanaTestPage() {
                       <LoadingSpinner className="mr-2 h-4 w-4" />
                       {status === 'queued' ? 'In Queue...' : 
                        imageLoading ? 'Loading Image...' : 'Generating...'}
-                    </>
-                  ) : !isValidPrompt(prompt) ? (
-                    <>
-                      Enter at least 3 characters
-                      <Wand2 className="ml-2 h-4 w-4 opacity-50" />
                     </>
                   ) : (
                     <>
@@ -405,20 +392,20 @@ export default function SanaTestPage() {
                     )}
                   </>
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-muted p-6">
-                    <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                  <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-muted/20">
+                    <div className="relative h-full flex flex-col items-center justify-center text-center p-4">
                       {(status === 'generating' || status === 'queued') ? (
                         <>
                           <div className="rounded-full bg-primary/10 p-4 mb-4">
                             <LoadingSpinner className="h-6 w-6 text-primary" />
                           </div>
                           <p className="font-medium">
-                            {status === 'queued' ? 'Waiting in Queue' : 'Creating Your Image'}
+                            {status === 'queued' ? 'Waiting in Queue' : 'Creating Test Image'}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-muted-foreground">
                             {status === 'queued' 
-                              ? 'Your request is being processed...' 
-                              : 'This might take a few seconds...'}
+                              ? 'Your request is in the queue...' 
+                              : 'Almost there...'}
                           </p>
                         </>
                       ) : (
@@ -426,18 +413,10 @@ export default function SanaTestPage() {
                           <div className="rounded-full bg-primary/10 p-4 mb-4">
                             <Sparkles className="h-6 w-6 text-primary" />
                           </div>
-                          <p className="font-medium">Preview Area</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Your generated image will appear here
+                          <p className="font-medium">Ready to Test</p>
+                          <p className="text-sm text-muted-foreground">
+                            Configure settings and generate a test image
                           </p>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-4 hover:none"
-                            onClick={() => document.querySelector('textarea')?.focus()}
-                          >
-                            Start by entering a prompt
-                          </Button>
                         </>
                       )}
                     </div>

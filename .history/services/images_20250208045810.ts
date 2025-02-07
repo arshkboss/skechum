@@ -102,8 +102,13 @@ export async function getUserImages(
   return { data, error: null }
 }
 
-// Remove the createSecureImageUrl function
+// Add a function to create a secure public URL
 export function createSecureImageUrl(imageUrl: string) {
-  // For now, just return the original URL
-  return imageUrl
+  try {
+    const url = new URL(imageUrl)
+    // Remove any query parameters and file names that might reveal UUIDs
+    return `/api/images${url.pathname.split('/').pop()?.split('.').pop()}`
+  } catch {
+    return imageUrl
+  }
 } 

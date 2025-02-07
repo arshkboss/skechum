@@ -221,9 +221,6 @@ export default function SanaTestPage() {
     }
   }
 
-  // Add a function to check if prompt is valid
-  const isValidPrompt = (text: string) => text.trim().length >= 3
-
   return (
     <div className="container mx-auto p-8">
       <Tabs defaultValue="generate" className="space-y-6">
@@ -322,12 +319,7 @@ export default function SanaTestPage() {
                 </div>
 
                 <Button 
-                  disabled={
-                    status === 'generating' || 
-                    status === 'queued' || 
-                    imageLoading || 
-                    !isValidPrompt(prompt)
-                  }
+                  disabled={status === 'generating' || status === 'queued' || imageLoading}
                   onClick={handleGenerate}
                   className="w-full"
                 >
@@ -336,11 +328,6 @@ export default function SanaTestPage() {
                       <LoadingSpinner className="mr-2 h-4 w-4" />
                       {status === 'queued' ? 'In Queue...' : 
                        imageLoading ? 'Loading Image...' : 'Generating...'}
-                    </>
-                  ) : !isValidPrompt(prompt) ? (
-                    <>
-                      Enter at least 3 characters
-                      <Wand2 className="ml-2 h-4 w-4 opacity-50" />
                     </>
                   ) : (
                     <>
@@ -430,14 +417,12 @@ export default function SanaTestPage() {
                           <p className="text-sm text-muted-foreground mt-1">
                             Your generated image will appear here
                           </p>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-4 hover:none"
+                          <p 
+                            
                             onClick={() => document.querySelector('textarea')?.focus()}
                           >
                             Start by entering a prompt
-                          </Button>
+                          </p>
                         </>
                       )}
                     </div>

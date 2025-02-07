@@ -100,10 +100,4 @@ export async function getUserImages(
   }
 
   return { data, error: null }
-}
-
-// Remove the createSecureImageUrl function
-export function createSecureImageUrl(imageUrl: string) {
-  // For now, just return the original URL
-  return imageUrl
 } 
