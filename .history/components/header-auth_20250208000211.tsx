@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
 import ThemeToggle from "./ui/theme-toggle";
 import { useTheme } from "next-themes";
 
@@ -60,6 +60,10 @@ export default function AuthButton({ user }: { user: any }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <CreditCard className="mr-2 h-4 w-4" />
+            <span>0 credits</span>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile" className="w-full">
               <User className="mr-2 h-4 w-4" />
@@ -97,10 +101,10 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline">
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant="default" className="rounded-full">
+      <Button asChild size="sm" variant="default">
         <Link href="/sign-up">Sign up</Link>
       </Button>
     </div>

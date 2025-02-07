@@ -97,10 +97,10 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline">
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant="default" className="rounded-full">
+      <Button asChild size="sm" variant="default">
         <Link href="/sign-up">Sign up</Link>
       </Button>
     </div>

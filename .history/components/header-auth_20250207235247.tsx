@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Palette } from "lucide-react";
 import ThemeToggle from "./ui/theme-toggle";
 import { useTheme } from "next-themes";
 
@@ -27,41 +27,28 @@ export default function AuthButton({ user }: { user: any }) {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className="relative h-10 w-auto gap-2 pl-2 pr-4 rounded-full hover:bg-accent group 
-            border hover:border-border transition-all duration-200
-            bg-accent/5 dark:bg-accent/50"
+          className="relative h-10 w-auto gap-2 pl-2 pr-4 rounded-full hover:bg-accent"
         >
-          <div className="flex items-center gap-2">
-            <Image 
-              src={avatar} 
-              alt={fullName} 
-              width={32} 
-              height={32} 
-              className="rounded-full ring-2 ring-offset-2 ring-offset-background ring-border/30" 
-            />
-            <span>Hey, {fullName}!</span>
-            <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-          </div>
+          <Image 
+            src={avatar} 
+            alt={fullName} 
+            width={32} 
+            height={32} 
+            className="rounded-full" 
+          />
+          <span>Hey, {fullName}!</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-56 mt-2" 
-        align="end" 
-        forceMount
-        sideOffset={8}
-      >
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{fullName}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <CreditCard className="mr-2 h-4 w-4" />
+            <span>0 credits</span>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/profile" className="w-full">
+            <Link href="/profile">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </Link>
@@ -76,16 +63,14 @@ export default function AuthButton({ user }: { user: any }) {
           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
             <Palette className="mr-2 h-4 w-4" />
             <span className="flex-1">Theme</span>
-            <div className="ml-2">
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <form action={signOutAction}>
           <DropdownMenuItem 
             asChild
-            className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+            className="text-red-600 dark:text-red-400"
           >
             <button type="submit" className="w-full flex items-center">
               <LogOut className="mr-2 h-4 w-4" />
@@ -97,10 +82,10 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline">
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant="default" className="rounded-full">
+      <Button asChild size="sm" variant="default">
         <Link href="/sign-up">Sign up</Link>
       </Button>
     </div>

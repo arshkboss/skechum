@@ -4,6 +4,7 @@ import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
 import ThemeToggle from "./ui/theme-toggle";
 import { useTheme } from "next-themes";
 
@@ -97,10 +98,10 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline">
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant="default" className="rounded-full">
+      <Button asChild size="sm" variant="default">
         <Link href="/sign-up">Sign up</Link>
       </Button>
     </div>

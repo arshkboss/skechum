@@ -4,6 +4,8 @@ import { signOutAction } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +15,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Palette, ChevronDown } from "lucide-react";
 import ThemeToggle from "./ui/theme-toggle";
 import { useTheme } from "next-themes";
 
 export default function AuthButton({ user }: { user: any }) {
+  const [credits, setCredits] = useState<number | null>(null);
   const fullName = user?.identities?.[0]?.identity_data?.full_name.split(" ")[0] || user?.email;
   const avatar = user?.identities?.[0]?.identity_data?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + fullName;
   const { theme, setTheme } = useTheme();
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchCredits() {
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from('user_credits')
+          .select('credits')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching credits:', error);
+          return;
+        }
+        
+        if (data) {
+          setCredits(data.credits);
+        }
+      }
+    }
+
+    fetchCredits();
+  }, [user?.id]);
 
   return user ? (
     <DropdownMenu>
@@ -60,6 +87,10 @@ export default function AuthButton({ user }: { user: any }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <CreditCard className="mr-2 h-4 w-4" />
+            <span>{credits !== null ? `${credits} credits` : 'Loading...'}</span>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile" className="w-full">
               <User className="mr-2 h-4 w-4" />
@@ -97,10 +128,10 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline">
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant="default" className="rounded-full">
+      <Button asChild size="sm" variant="default">
         <Link href="/sign-up">Sign up</Link>
       </Button>
     </div>

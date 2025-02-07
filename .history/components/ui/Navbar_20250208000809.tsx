@@ -94,7 +94,7 @@ export default function Navbar({ user }: { user: any }) {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="flex items-center gap-2 bg-accent/5 dark:bg-accent/50 hover:bg-accent/10 rounded-full"
+                className="flex items-center gap-2 bg-accent/5 dark:bg-accent/50 hover:bg-accent/10 outline"
               >
                 <CreditCard className="h-4 w-4" />
                 <span>{credits !== null ? `${credits} credits` : '...'}</span>

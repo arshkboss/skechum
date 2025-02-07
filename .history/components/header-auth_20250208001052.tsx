@@ -97,7 +97,7 @@ export default function AuthButton({ user }: { user: any }) {
     </DropdownMenu>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant="outline" className="rounded-full">
+      <Button asChild size="sm" variant="outline" className="bg-accent/5 dark:bg-accent/50">
         <Link href="/sign-in">Sign in</Link>
       </Button>
       <Button asChild size="sm" variant="default" className="rounded-full">
