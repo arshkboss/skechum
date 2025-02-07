@@ -1,7 +1,3 @@
-import type { RecraftV3 } from "@fal-ai/client/models"
-
-type RecraftStyle = NonNullable<RecraftV3['input']>['style']
-
 export const styles = [
   {
     id: "notion-style",
@@ -13,7 +9,7 @@ export const styles = [
     id: "line-art",
     label: "Line Art",
     icon: "✏️",
-    style: "vector_illustration/line_art" as RecraftStyle,
+    style: "vector_illustration/line_art",
     color: true
   },
   {

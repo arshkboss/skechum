@@ -6,7 +6,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { ImageGrid } from '@/components/image-grid'
 import { SearchInput } from '@/components/search-input'
 import { CategoryFilter } from '@/components/category-filter'
-import { StorageImage, ImageCategory } from '@/app/types/image'
+import { StorageImage, ImageCategory } from '@/types/image'
 import { imageUtils } from '@/utils/image-utils'
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import type { ChangeEvent } from 'react'
@@ -70,7 +70,7 @@ export default function ExplorePage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <SearchInput
             value={searchQuery}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search images..."
             className="flex-1"
           />

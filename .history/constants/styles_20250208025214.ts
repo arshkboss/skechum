@@ -1,6 +1,6 @@
-import type { RecraftV3 } from "@fal-ai/client/models"
+import type { RecraftV3Input } from "@fal-ai/client/dist/services/recraft-v3"
 
-type RecraftStyle = NonNullable<RecraftV3['input']>['style']
+type RecraftStyle = RecraftV3Input['style']
 
 export const styles = [
   {
