@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-3">
             <h4 className="font-semibold">Links</h4>
             <ul className="space-y-2 text-sm">
-              {["Create","Explore",  "Pricing"].map((item) => (
+              {["Explore", "Create", "Pricing"].map((item) => (
                 <li key={item}>
                   <Link 
                     href={`/${item.toLowerCase()}`}
