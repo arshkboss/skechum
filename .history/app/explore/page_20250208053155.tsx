@@ -7,14 +7,12 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
-import { ImageOff, ChevronRight, Search } from "lucide-react"
+import { ImageOff, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import NProgress from "nprogress"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { useDebounce } from "@/hooks/use-debounce"
 
 interface ExploreImage {
   id: string
@@ -42,11 +40,6 @@ interface Category {
 
 const ITEMS_PER_PAGE = 8
 const CATEGORIES = [
-  {
-    id: 'all',
-    title: 'All Images',
-    description: 'Every creation on the platform'
-  },
   {
     id: 'latest',
     title: 'Latest Creations',
@@ -78,25 +71,12 @@ export default function ExplorePage() {
 
   const [loading, setLoading] = useState<Record<string, boolean>>({})
 
-  const [search, setSearch] = useState("")
-  const debouncedSearch = useDebounce(search, 500)
-
   const fetchImages = async (categoryId: string, page: number) => {
     setLoading(prev => ({ ...prev, [categoryId]: true }))
     NProgress.start()
     
     try {
-      const params = new URLSearchParams({
-        category: categoryId,
-        page: page.toString(),
-        limit: ITEMS_PER_PAGE.toString()
-      })
-
-      if (debouncedSearch) {
-        params.append('search', debouncedSearch)
-      }
-
-      const response = await fetch(`/api/explore?${params}`)
+      const response = await fetch(`/api/explore?category=${categoryId}&page=${page}&limit=${ITEMS_PER_PAGE}`)
       const data = await response.json()
       
       console.log(`[Explore] Received data for ${categoryId}:`, data)
@@ -127,7 +107,7 @@ export default function ExplorePage() {
   useEffect(() => {
     // Initial load for all categories
     CATEGORIES.forEach(cat => fetchImages(cat.id, 1))
-  }, [debouncedSearch])
+  }, [])
 
   const handleViewMore = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId)
@@ -138,16 +118,6 @@ export default function ExplorePage() {
 
   return (
     <div className="container mx-auto p-8 space-y-16">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search images..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
       {categories.map((category) => (
         <section key={category.id} className="space-y-6">
           <div className="flex justify-between items-end">

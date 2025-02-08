@@ -7,14 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
-import { ImageOff, ChevronRight, Search } from "lucide-react"
+import { ImageOff, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import NProgress from "nprogress"
 import Link from "next/link"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { useDebounce } from "@/hooks/use-debounce"
 
 interface ExploreImage {
   id: string
@@ -42,11 +39,6 @@ interface Category {
 
 const ITEMS_PER_PAGE = 8
 const CATEGORIES = [
-  {
-    id: 'all',
-    title: 'All Images',
-    description: 'Every creation on the platform'
-  },
   {
     id: 'latest',
     title: 'Latest Creations',
@@ -76,30 +68,11 @@ export default function ExplorePage() {
 
   const { ref, inView } = useInView()
 
-  const [loading, setLoading] = useState<Record<string, boolean>>({})
-
-  const [search, setSearch] = useState("")
-  const debouncedSearch = useDebounce(search, 500)
-
   const fetchImages = async (categoryId: string, page: number) => {
-    setLoading(prev => ({ ...prev, [categoryId]: true }))
     NProgress.start()
-    
     try {
-      const params = new URLSearchParams({
-        category: categoryId,
-        page: page.toString(),
-        limit: ITEMS_PER_PAGE.toString()
-      })
-
-      if (debouncedSearch) {
-        params.append('search', debouncedSearch)
-      }
-
-      const response = await fetch(`/api/explore?${params}`)
+      const response = await fetch(`/api/explore?category=${categoryId}&page=${page}&limit=${ITEMS_PER_PAGE}`)
       const data = await response.json()
-      
-      console.log(`[Explore] Received data for ${categoryId}:`, data)
       
       if (data && Array.isArray(data.images)) {
         setCategories(prev => prev.map(cat => {
@@ -107,19 +80,18 @@ export default function ExplorePage() {
             return {
               ...cat,
               images: page === 1 ? data.images : [...cat.images, ...data.images],
-              hasMore: data.hasMore,
+              hasMore: data.images.length === ITEMS_PER_PAGE,
               page: page
             }
           }
           return cat
         }))
       } else {
-        console.error(`[Explore] Invalid data format for ${categoryId}:`, data)
+        console.error(`Invalid data format for ${categoryId}:`, data)
       }
     } catch (error) {
-      console.error(`[Explore] Error fetching ${categoryId} images:`, error)
+      console.error(`Error fetching ${categoryId} images:`, error)
     } finally {
-      setLoading(prev => ({ ...prev, [categoryId]: false }))
       NProgress.done()
     }
   }
@@ -127,7 +99,7 @@ export default function ExplorePage() {
   useEffect(() => {
     // Initial load for all categories
     CATEGORIES.forEach(cat => fetchImages(cat.id, 1))
-  }, [debouncedSearch])
+  }, [])
 
   const handleViewMore = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId)
@@ -138,16 +110,6 @@ export default function ExplorePage() {
 
   return (
     <div className="container mx-auto p-8 space-y-16">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search images..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
       {categories.map((category) => (
         <section key={category.id} className="space-y-6">
           <div className="flex justify-between items-end">
@@ -168,17 +130,6 @@ export default function ExplorePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {loading[category.id] && !category.images.length && (
-              Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-square rounded-lg" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </div>
-              ))
-            )}
             {category.images.map((image, index) => (
               <motion.div
                 key={image.id}
