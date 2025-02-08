@@ -1,0 +1,35 @@
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-50% - 1rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll 25s linear infinite;
+}
+
+.animate-scroll-delayed {
+  animation: scroll 25s linear infinite;
+  animation-delay: -6s;
+}
+
+.animate-scroll-more-delayed {
+  animation: scroll 25s linear infinite;
+  animation-delay: -12s;
+}
+
+.animate-scroll-most-delayed {
+  animation: scroll 25s linear infinite;
+  animation-delay: -18s;
+}
+
+/* Add hover pause */
+.scroll-pause:hover .animate-scroll,
+.scroll-pause:hover .animate-scroll-delayed,
+.scroll-pause:hover .animate-scroll-more-delayed,
+.scroll-pause:hover .animate-scroll-most-delayed {
+  animation-play-state: paused;
+} 
