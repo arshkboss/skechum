@@ -5,10 +5,9 @@ import { Footer } from "@/components/footer";
 import Navbar from "@/components/ui/Navbar";
 import { createClient } from "@/utils/supabase/server";
 import { Metadata } from 'next'
-
+import { LoadingBar } from "@/components/ui/loading-bar"
 import "@/styles/nprogress.css"
 import { Analytics } from "@vercel/analytics/react"
-import NextTopLoader from "nextjs-toploader";
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
@@ -104,8 +103,8 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        ><NextTopLoader color="#D63418FF" />
-          
+        >
+          <LoadingBar />
           <main className="min-h-screen flex flex-col">
             <Navbar user={user} />
             {children}

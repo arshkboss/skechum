@@ -104,7 +104,7 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        ><NextTopLoader color="#D63418FF" />
+        ><NextTopLoader />
           
           <main className="min-h-screen flex flex-col">
             <Navbar user={user} />

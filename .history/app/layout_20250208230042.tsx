@@ -8,7 +8,7 @@ import { Metadata } from 'next'
 
 import "@/styles/nprogress.css"
 import { Analytics } from "@vercel/analytics/react"
-import NextTopLoader from "nextjs-toploader";
+import { NavigationProgress } from "@/components/providers/nprogress"
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
@@ -98,14 +98,43 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
+      <head>
+        <style>
+          {`
+            #nprogress {
+              pointer-events: none;
+            }
+            #nprogress .bar {
+              background: hsl(var(--primary));
+              position: fixed;
+              z-index: 1031;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 2px;
+            }
+            #nprogress .peg {
+              display: block;
+              position: absolute;
+              right: 0px;
+              width: 100px;
+              height: 100%;
+              box-shadow: 0 0 10px hsl(var(--primary)), 0 0 5px hsl(var(--primary));
+              opacity: 1.0;
+              transform: rotate(3deg) translate(0px, -4px);
+            }
+          `}
+        </style>
+      </head>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        ><NextTopLoader color="#D63418FF" />
-          
+        >
+          <LoadingBar />
+          <NavigationProgress />
           <main className="min-h-screen flex flex-col">
             <Navbar user={user} />
             {children}
