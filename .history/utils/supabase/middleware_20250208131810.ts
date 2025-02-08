@@ -47,7 +47,6 @@ export const updateSession = async (request: NextRequest) => {
       '/settings',
       '/api/protected',
       '/account',
-      '/test',
       // Add more protected routes here
     ];
 
