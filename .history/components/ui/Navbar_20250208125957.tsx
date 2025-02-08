@@ -12,9 +12,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetTitle,
 } from "@/components/ui/sheet"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
 /**
  * Navbar component with theme switcher
@@ -71,7 +69,7 @@ export default function Navbar({ user }: { user: any }) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-4 w-full mx-auto relative">
+      <div className="container flex h-14 items-center justify-between px-4 w-full mx-auto">
         {/* Logo/Brand */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -79,8 +77,8 @@ export default function Navbar({ user }: { user: any }) {
           </Link>
         </div>
 
-        {/* Desktop Navigation - Centered */}
-        <nav className="hidden md:flex items-center space-x-6 absolute left-1/2 -translate-x-1/2">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
           {routes.map((route) => (
             <Link
               key={route.href}
@@ -123,9 +121,6 @@ export default function Navbar({ user }: { user: any }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-            <SheetTitle asChild>
-              <VisuallyHidden>Navigation Menu</VisuallyHidden>
-            </SheetTitle>
             <nav className="flex flex-col space-y-4 mt-6">
               {routes.map((route) => (
                 <Link
