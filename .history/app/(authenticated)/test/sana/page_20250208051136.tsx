@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { Wand2, Sparkles, DownloadCloud, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -65,7 +65,7 @@ export default function SanaTestPage() {
   const [generationTime, setGenerationTime] = useState<number | null>(null)
   const [generationStartTime, setGenerationStartTime] = useState<number | null>(null)
   const [elapsedTime, setElapsedTime] = useState<number>(0)
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timer | null>(null)
   const [savedImages, setSavedImages] = useState<Set<string>>(new Set())
 
   const handleGenerate = async () => {
@@ -211,24 +211,15 @@ export default function SanaTestPage() {
     const interval = setInterval(() => {
       setElapsedTime(Date.now() - startTime)
     }, 100)
-    timerIntervalRef.current = interval
+    setTimerInterval(interval)
   }
 
   const stopTimer = () => {
-    if (timerIntervalRef.current !== null) {
-      clearInterval(timerIntervalRef.current)
-      timerIntervalRef.current = null
+    if (timerInterval) {
+      clearInterval(timerInterval)
+      setTimerInterval(null)
     }
   }
-
-  // Cleanup effect
-  useEffect(() => {
-    return () => {
-      if (timerIntervalRef.current !== null) {
-        clearInterval(timerIntervalRef.current)
-      }
-    }
-  }, [])
 
   // Add a function to check if prompt is valid
   const isValidPrompt = (text: string) => text.trim().length >= 3

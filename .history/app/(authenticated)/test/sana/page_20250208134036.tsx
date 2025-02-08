@@ -65,7 +65,7 @@ export default function SanaTestPage() {
   const [generationTime, setGenerationTime] = useState<number | null>(null)
   const [generationStartTime, setGenerationStartTime] = useState<number | null>(null)
   const [elapsedTime, setElapsedTime] = useState<number>(0)
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [timerIntervalRef] = useRef<NodeJS.Timer | null>(null)
   const [savedImages, setSavedImages] = useState<Set<string>>(new Set())
 
   const handleGenerate = async () => {
@@ -215,16 +215,16 @@ export default function SanaTestPage() {
   }
 
   const stopTimer = () => {
-    if (timerIntervalRef.current !== null) {
+    if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current)
       timerIntervalRef.current = null
     }
   }
 
-  // Cleanup effect
+  // Add cleanup effect
   useEffect(() => {
     return () => {
-      if (timerIntervalRef.current !== null) {
+      if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current)
       }
     }
