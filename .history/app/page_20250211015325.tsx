@@ -30,7 +30,7 @@ export default function Home() {
               <Link href="/create">
                 <Button size="lg" className="rounded-full">
                   Create Now for Free
-                  <ArrowRight className="ml-2 h-4 w-4 animate-pulse" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/explore">

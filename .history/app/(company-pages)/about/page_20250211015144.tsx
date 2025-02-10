@@ -95,23 +95,23 @@ export default function AboutPage() {
       >
         <motion.h1 
           variants={fadeIn}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
+          className="text-6xl md:text-7xl font-bold tracking-tight mb-6"
         >
           About Skechum
         </motion.h1>
         <motion.p 
           variants={fadeIn}
-          className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-12 px-4"
+          className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-12"
         >
           We&apos;re on a mission to make AI-powered art creation accessible to everyone
         </motion.p>
         <motion.div 
           variants={fadeIn}
-          className="flex flex-col sm:flex-row justify-center gap-4 px-4"
+          className="flex justify-center gap-4"
         >
           <Button asChild size="lg" className="rounded-full">
             <Link href="/create">Create Illustrations 
-            <ArrowRight className="w-4 h-4 ml-2 animate-pulse" /></Link>
+            <ArrowRight className="w-4 h-4 ml-2 animate-bounce " /></Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-full">
             <Link href="/explore">View Gallery</Link>
