@@ -14,8 +14,6 @@ import { GenerationStatus, GeneratedImage, StyleOption, STYLE_OPTIONS } from "./
 import { StyleSelector } from "./components/style-selector"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { useRouter } from "next/navigation"
-import { fal } from "@fal-ai/client"
-import { FalQueueResponse } from "./types"
 
 // Define types
 interface FalImage {
@@ -47,53 +45,8 @@ export default function CreatePage() {
   const [originalFormat, setOriginalFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
-  const [requestId, setRequestId] = useState<string | null>(null)
-  const [queueCheckInterval, setQueueCheckInterval] = useState<NodeJS.Timeout | null>(null)
-
-  const checkQueueStatus = async (reqId: string) => {
-    try {
-      const status = await fal.queue.status("fal-ai/recraft-20b", {
-        requestId: reqId,
-        logs: true,
-      }) as FalQueueResponse
-
-      // Map FAL status to our application status
-      if (status.status === 'IN_PROGRESS') {
-        setStatus('generating')
-      } else if (status.status === 'IN_QUEUE') {
-        setStatus('queued')
-      } else if (status.status === 'COMPLETED') {
-        // Get the result
-        const result = await fal.queue.result("fal-ai/recraft-20b", {
-          requestId: reqId
-        })
-
-        if (result.data?.images?.[0]?.url) {
-          setCurrentImage(result.data.images[0].url)
-          setStatus('completed')
-          if (queueCheckInterval) {
-            clearInterval(queueCheckInterval)
-            setQueueCheckInterval(null)
-          }
-        } else {
-          throw new Error('No image in result')
-        }
-      } else if (status.status === 'FAILED') {
-        throw new Error('Generation failed')
-      }
-      // If still processing, continue checking
-    } catch (error) {
-      console.error('Queue status check error:', error)
-      setStatus('failed')
-      setImageLoading(false)
-      stopTimer()
-      if (queueCheckInterval) {
-        clearInterval(queueCheckInterval)
-        setQueueCheckInterval(null)
-      }
-      toast.error("Failed to generate image. Please try again.")
-    }
-  }
+  const [generationId, setGenerationId] = useState<string | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleGenerate = async () => {
     if (!prompt || isProcessing) {
@@ -130,7 +83,7 @@ export default function CreatePage() {
         )
       }
 
-      // Submit to queue
+      // Start generation
       setStatus('queued')
       setCurrentImage("")
       setGenerationTime(null)
@@ -139,19 +92,26 @@ export default function CreatePage() {
       setElapsedTime(0)
       startTimer()
       setSavedImages(new Set())
-
-      const { request_id } = await fal.queue.submit("fal-ai/recraft-20b", {
-        input: {
+      
+      const response = await fetch('/api/test-recraft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           prompt,
           style: selectedStyle
-        }
+        })
       })
 
-      setRequestId(request_id)
+      if (!response.ok) throw new Error('Generation failed')
 
-      // Start checking queue status
-      const interval = setInterval(() => checkQueueStatus(request_id), 1000)
-      setQueueCheckInterval(interval)
+      const result = await response.json()
+      
+      if (result.id) {
+        setGenerationId(result.id)
+        startPolling(result.id)
+      } else {
+        throw new Error('No generation ID received')
+      }
 
     } catch (error) {
       console.error('Generation error:', error)
@@ -268,16 +228,54 @@ export default function CreatePage() {
 
   useEffect(() => {
     return () => {
-      if (queueCheckInterval) {
-        clearInterval(queueCheckInterval)
-      }
       if (timerIntervalRef.current !== null) {
         clearInterval(timerIntervalRef.current)
       }
     }
-  }, [queueCheckInterval])
+  }, [])
 
   const isValidPrompt = (text: string) => text.trim().length >= 3
+
+  const startPolling = async (id: string) => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+
+    const pollStatus = async () => {
+      try {
+        const response = await fetch(`/api/test-recraft/status?id=${id}`)
+        if (!response.ok) throw new Error('Polling failed')
+        
+        const result = await response.json()
+        
+        if (result.status === 'completed' && result.data?.images?.[0]?.url) {
+          clearInterval(pollingIntervalRef.current!)
+          setCurrentImage(result.data.images[0].url)
+        } else if (result.status === 'failed') {
+          clearInterval(pollingIntervalRef.current!)
+          throw new Error('Generation failed')
+        }
+        // Continue polling if status is 'processing' or 'queued'
+      } catch (error) {
+        clearInterval(pollingIntervalRef.current!)
+        setStatus('failed')
+        setImageLoading(false)
+        stopTimer()
+        toast.error("Failed to generate image. Please try again.")
+      }
+    }
+
+    pollingIntervalRef.current = setInterval(pollStatus, 2000) // Poll every 2 seconds
+  }
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [])
 
   return (
     <div className="container mx-auto p-8">

@@ -15,7 +15,6 @@ import { StyleSelector } from "./components/style-selector"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { useRouter } from "next/navigation"
 import { fal } from "@fal-ai/client"
-import { FalQueueResponse } from "./types"
 
 // Define types
 interface FalImage {
@@ -55,7 +54,7 @@ export default function CreatePage() {
       const status = await fal.queue.status("fal-ai/recraft-20b", {
         requestId: reqId,
         logs: true,
-      }) as FalQueueResponse
+      })
 
       // Map FAL status to our application status
       if (status.status === 'IN_PROGRESS') {

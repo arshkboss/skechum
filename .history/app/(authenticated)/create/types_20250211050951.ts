@@ -29,13 +29,4 @@ export const STYLE_OPTIONS = [
   }
 ] as const
 
-export type StyleOption = typeof STYLE_OPTIONS[number]['id']
-
-// Add FAL API types
-export type FalQueueStatus = 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'IN_QUEUE'
-
-export interface FalQueueResponse {
-  status: FalQueueStatus
-  logs?: string[]
-  // Add other properties if needed
-} 
+export type StyleOption = typeof STYLE_OPTIONS[number]['id'] 
