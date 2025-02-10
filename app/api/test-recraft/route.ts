@@ -7,23 +7,20 @@ fal.config({
 
 export async function POST(request: Request) {
   try {
-    const { prompt, size } = await request.json()
+    const { prompt, style = "vector_illustration/doodle_line_art" } = await request.json()
 
-    if (!prompt || !size) {
+    if (!prompt) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing prompt" },
         { status: 400 }
       )
     }
 
-    const imageSize = size === 'square' ? 'square_hd' : 
-                     size === 'portrait' ? 'portrait_16_9' : 'landscape_16_9'
-
-    const result = await fal.subscribe("fal-ai/recraft-v3", {
+    const result = await fal.subscribe("fal-ai/recraft-20b", {
       input: {
         prompt,
-        image_size: imageSize,
-        style: "vector_illustration/line_art",
+        image_size: "square_hd",
+        style,
         colors: []
       },
       logs: true

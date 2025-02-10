@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.fal.media'
+        hostname: '**.fal.media'
       },
       {
         protocol: 'https',
@@ -12,7 +12,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.googleusercontent.com'
+        hostname: 'lh3.googleusercontent.com'
       },
       {
         protocol: 'https',
@@ -21,22 +21,8 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'figma.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'authjs.dev'
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com'
       }
-    ],
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    ]
   },
   // Basic security headers
   async headers() {

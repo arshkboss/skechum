@@ -102,16 +102,12 @@ export async function getUserImages(
   return { data, error: null }
 }
 
-export function createSecureImageUrl(url: string): string {
-  if (!url) {
-    throw new Error('URL is required');
-  }
-  
+export function createSecureImageUrl(url: string) {
   // If it's an SVG, return the original URL
   if (url.toLowerCase().includes('.svg')) {
     return url;
   }
   
-  // Otherwise, return the URL as is (or apply your transformation)
-  return url;
+  // Otherwise, apply your secure transformation
+  // ... your existing transformation logic
 } 

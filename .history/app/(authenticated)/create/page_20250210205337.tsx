@@ -12,7 +12,7 @@ import { DownloadButton } from "./components/download-button"
 import { HistorySection } from "./components/history-section"
 import { GenerationStatus, GeneratedImage, StyleOption, STYLE_OPTIONS } from "./types"
 import { StyleSelector } from "./components/style-selector"
-import { detectImageFormat, convertImage } from '@/utils/image-utils'
+import { detectImageFormat, convertImage } from './utils/image-utils'
 
 // Define types
 interface FalImage {
@@ -41,7 +41,7 @@ export default function CreatePage() {
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [savedImages, setSavedImages] = useState<Set<string>>(new Set())
   const [selectedStyle, setSelectedStyle] = useState<StyleOption>(STYLE_OPTIONS[0].id)
-  const [originalFormat, setOriginalFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
+  const [originalFormat, setOriginalFormat] = useState<'svg' | 'png' | 'jpg'>('png')
 
   const handleGenerate = async () => {
     if (!prompt) {
@@ -100,8 +100,9 @@ export default function CreatePage() {
     
     if (currentImage && user?.id && !savedImages.has(currentImage)) {
       try {
+        // Detect the actual format of the generated image
         const imageFormat = await detectImageFormat(currentImage)
-        setOriginalFormat(imageFormat.toUpperCase() as 'PNG' | 'SVG' | 'JPG')
+        setOriginalFormat(imageFormat)
         
         const { error } = await saveUserImage(
           currentImage,
@@ -113,7 +114,7 @@ export default function CreatePage() {
               style: selectedStyle,
             },
             generationTime: finalTime,
-            format: imageFormat.toUpperCase() as 'PNG' | 'SVG' | 'JPG',
+            format: imageFormat, // Save the actual format
             is_colored: true,
             keywords: prompt.toLowerCase().split(' ')
           },
@@ -148,7 +149,7 @@ export default function CreatePage() {
       .slice(0, 50)
   }
 
-  const handleDownload = async (format: 'PNG' | 'JPG' | 'SVG') => {
+  const handleDownload = async (format: 'png' | 'jpg' | 'svg') => {
     if (!currentImage || !prompt) return
 
     try {
@@ -157,7 +158,7 @@ export default function CreatePage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${formatFileName(prompt)}.${format.toLowerCase()}`
+      a.download = `${formatFileName(prompt)}.${format}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -244,7 +245,6 @@ export default function CreatePage() {
         currentImage={currentImage}
         isDownloading={isDownloading}
         imageLoading={imageLoading}
-        originalFormat={originalFormat}
         onDownload={handleDownload}
       />
 

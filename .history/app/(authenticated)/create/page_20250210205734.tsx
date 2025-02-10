@@ -244,7 +244,6 @@ export default function CreatePage() {
         currentImage={currentImage}
         isDownloading={isDownloading}
         imageLoading={imageLoading}
-        originalFormat={originalFormat}
         onDownload={handleDownload}
       />
 

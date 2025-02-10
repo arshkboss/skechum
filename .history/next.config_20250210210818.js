@@ -12,7 +12,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.googleusercontent.com'
+        hostname: 'lh3.googleusercontent.com'
       },
       {
         protocol: 'https',
@@ -21,18 +21,6 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'figma.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'authjs.dev'
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com'
       }
     ],
     dangerouslyAllowSVG: true,

@@ -17,7 +17,6 @@ import { motion } from "framer-motion"
 import NProgress from "nprogress"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
 
 interface UserImage {
   id: string
@@ -170,7 +169,7 @@ export default function ProfilePage() {
 
   // Add share handler
   const handleShare = async (imageUrl: string, prompt: string, imageId: string) => {
-    if (sharingId || !imageUrl) return
+    if (sharingId) return
     
     NProgress.start()
     try {
@@ -244,183 +243,169 @@ export default function ProfilePage() {
               transition={{ duration: 0.3, delay: index * 0.1 }}
               className="w-full"
             >
-              <Link href={`/image/${image.id}`}>
-                <Card className="overflow-hidden group">
-                  <div className={cn(
-                    "aspect-square relative",
-                    image.format === 'SVG' 
-                      ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
-                      : "bg-muted"
-                  )}>
-                    {image.format === 'SVG' ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={image.image_url}
-                        alt={image.prompt}
-                        className="w-full h-full object-contain"
-                        loading="eager"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
-                        }}
-                      />
-                    ) : (
-                      <Image
-                        src={image.image_url}
-                        alt={image.prompt}
-                        fill
-                        className="object-cover transition-opacity duration-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                          e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
-                        }}
-                      />
+              <Card className="overflow-hidden group">
+                <div className={cn(
+                  "aspect-square relative",
+                  // Add checkered background for SVGs
+                  image.format === 'SVG' ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small" : "bg-muted"
+                )}>
+                  <Image
+                    src={image.image_url}
+                    alt={image.prompt}
+                    fill
+                    className={cn(
+                      "transition-opacity duration-200",
+                      image.format === 'SVG' ? "object-contain p-4" : "object-cover"
                     )}
-                    {/* Fallback for failed images */}
-                    <div className="fallback hidden absolute inset-0 items-center justify-center p-6" 
-                      style={{ display: 'none' }}
-                    >
-                      <div className="w-full h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
-                        <div className="rounded-full bg-muted-foreground/10 p-4 mb-4">
-                          <ImageOff className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <p className="font-medium text-muted-foreground">Image Unavailable</p>
-                        <p className="text-sm text-muted-foreground/75 mt-1 max-w-[200px]">
-                          This image could not be loaded
-                        </p>
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
+                    }}
+                  />
+                  {/* Fallback for failed images */}
+                  <div className="fallback hidden absolute inset-0 items-center justify-center p-6" 
+                    style={{ display: 'none' }}
+                  >
+                    <div className="w-full h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                      <div className="rounded-full bg-muted-foreground/10 p-4 mb-4">
+                        <ImageOff className="h-6 w-6 text-muted-foreground" />
                       </div>
+                      <p className="font-medium text-muted-foreground">Image Unavailable</p>
+                      <p className="text-sm text-muted-foreground/75 mt-1 max-w-[200px]">
+                        This image could not be loaded
+                      </p>
                     </div>
                   </div>
-                  <div className="p-4 space-y-3">
-                    {/* Prompt - only if available */}
-                    {image.prompt && (
-                      <p className="text-sm line-clamp-2 font-medium">
-                        {image.prompt}
-                      </p>
+                </div>
+                <div className="p-4 space-y-3">
+                  {/* Prompt - only if available */}
+                  {image.prompt && (
+                    <p className="text-sm line-clamp-2 font-medium">
+                      {image.prompt}
+                    </p>
+                  )}
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={cn(
+                            "flex-1 h-8",
+                            downloadingId === image.id && "opacity-50 cursor-not-allowed"
+                          )}
+                          disabled={downloadingId === image.id}
+                        >
+                          {downloadingId === image.id ? (
+                            <>
+                              <LoadingSpinner className="h-4 w-4 mr-2" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download As
+                            </>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuItem 
+                          onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'PNG')}
+                        >
+                          PNG Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'JPG')}
+                        >
+                          JPG Image
+                        </DropdownMenuItem>
+                        {image.format === 'SVG' && (
+                          <DropdownMenuItem 
+                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'SVG')}
+                          >
+                            SVG Vector
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={cn(
+                        "flex-1 h-8",
+                        sharingId === image.id && "opacity-50 cursor-not-allowed"
+                      )}
+                      onClick={() => handleShare(image.image_url, image.prompt, image.id)}
+                      disabled={sharingId === image.id}
+                    >
+                      {sharingId === image.id ? (
+                        <>
+                          <LoadingSpinner className="h-4 w-4 mr-2" />
+                          {canShare ? "Sharing..." : "Copying..."}
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          {canShare ? "Share" : "Copy Link"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {/* Model Badge - only if available */}
+                    {image.settings.model && (
+                      <Badge variant="outline" className="text-xs">
+                        {image.settings.model}
+                      </Badge>
                     )}
                     
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className={cn(
-                              "flex-1 h-8",
-                              downloadingId === image.id && "opacity-50 cursor-not-allowed"
-                            )}
-                            disabled={downloadingId === image.id}
-                          >
-                            {downloadingId === image.id ? (
-                              <>
-                                <LoadingSpinner className="h-4 w-4 mr-2" />
-                                Downloading...
-                              </>
-                            ) : (
-                              <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download As
-                              </>
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px]">
-                          <DropdownMenuItem 
-                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'PNG')}
-                          >
-                            PNG Image
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'JPG')}
-                          >
-                            JPG Image
-                          </DropdownMenuItem>
-                          {image.format === 'SVG' && (
-                            <DropdownMenuItem 
-                              onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'SVG')}
-                            >
-                              SVG Vector
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className={cn(
-                          "flex-1 h-8",
-                          sharingId === image.id && "opacity-50 cursor-not-allowed"
-                        )}
-                        onClick={() => handleShare(image.image_url, image.prompt, image.id)}
-                        disabled={sharingId === image.id}
-                      >
-                        {sharingId === image.id ? (
-                          <>
-                            <LoadingSpinner className="h-4 w-4 mr-2" />
-                            {canShare ? "Sharing..." : "Copying..."}
-                          </>
-                        ) : (
-                          <>
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            {canShare ? "Share" : "Copy Link"}
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {/* Model Badge - only if available */}
-                      {image.settings.model && (
-                        <Badge variant="outline" className="text-xs">
-                          {image.settings.model}
-                        </Badge>
-                      )}
-                      
-                      {/* Size Badge - only if available */}
-                      {image.settings.size && (
-                        <Badge variant="secondary" className="text-xs">
-                          {image.settings.size}
-                        </Badge>
-                      )}
-                      
-                      {/* Steps Badge - only if available */}
-                      {image.settings.steps && (
-                        <Badge variant="outline" className="text-xs">
-                          {image.settings.steps} steps
-                        </Badge>
-                      )}
-                      
-                      {/* Format Badge */}
-                      <Badge 
-                        variant={image.format === 'SVG' ? "secondary" : "outline"} 
-                        className={cn(
-                          "text-xs",
-                          image.format === 'SVG' && "font-medium"
-                        )}
-                      >
-                        {image.format}
+                    {/* Size Badge - only if available */}
+                    {image.settings.size && (
+                      <Badge variant="secondary" className="text-xs">
+                        {image.settings.size}
                       </Badge>
-                    </div>
-
-                    {/* Generation Time and Created At */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {image.generation_time && (
-                        <span className="flex items-center gap-1">
-                          <span>Generated in</span>
-                          <Badge variant="secondary" className="text-[10px]">
-                            {(image.generation_time / 1000).toFixed(1)}s
-                          </Badge>
-                        </span>
+                    )}
+                    
+                    {/* Steps Badge - only if available */}
+                    {image.settings.steps && (
+                      <Badge variant="outline" className="text-xs">
+                        {image.settings.steps} steps
+                      </Badge>
+                    )}
+                    
+                    {/* Format Badge */}
+                    <Badge 
+                      variant={image.format === 'SVG' ? "secondary" : "outline"} 
+                      className={cn(
+                        "text-xs",
+                        image.format === 'SVG' && "font-medium"
                       )}
-                      <span>•</span>
-                      <span>
-                        {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
+                    >
+                      {image.format}
+                    </Badge>
                   </div>
-                </Card>
-              </Link>
+
+                  {/* Generation Time and Created At */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {image.generation_time && (
+                      <span className="flex items-center gap-1">
+                        <span>Generated in</span>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {(image.generation_time / 1000).toFixed(1)}s
+                        </Badge>
+                      </span>
+                    )}
+                    <span>•</span>
+                    <span>
+                      {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+              </Card>
             </motion.div>
           ))}
           {/* Intersection observer target */}
