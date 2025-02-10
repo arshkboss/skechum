@@ -1,8 +1,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// The params should not be a Promise in the type definition
-interface RouteContext {
+type RouteParams = {
   params: {
     id: string
   }
@@ -10,9 +9,10 @@ interface RouteContext {
 
 export async function GET(
   req: NextRequest,
-  { params }: RouteContext  // Destructure params directly from the context
+  context: Promise<RouteParams>
 ) {
   try {
+    const { params } = await context
     const supabase = await createClient()
 
     const { data, error } = await supabase
