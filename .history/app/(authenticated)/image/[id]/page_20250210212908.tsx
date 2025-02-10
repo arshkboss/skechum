@@ -14,8 +14,8 @@ import { formatDistanceToNow } from "date-fns"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
+import { toast } from "sonner"
 import NProgress from "nprogress"
-import { useToast } from "@/hooks/use-toast"
 
 interface ImageDetail {
   id: string
@@ -39,7 +39,6 @@ export default function ImageDetailPage() {
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
-  const { toast } = useToast()
 
   useEffect(() => {
     async function fetchImage() {
@@ -50,11 +49,7 @@ export default function ImageDetailPage() {
         setImage(data)
       } catch (error) {
         console.error('Error fetching image:', error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load image",
-        })
+        toast.error("Failed to load image")
       } finally {
         setLoading(false)
       }
@@ -63,7 +58,7 @@ export default function ImageDetailPage() {
     if (params.id) {
       fetchImage()
     }
-  }, [params.id, toast])
+  }, [params.id])
 
   const handleDownload = async (format: 'PNG' | 'SVG' | 'JPG') => {
     if (!image || downloading) return
@@ -95,10 +90,7 @@ export default function ImageDetailPage() {
           await writable.write(blob)
           await writable.close()
           
-          toast({
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          toast.success("Image downloaded successfully")
         } else {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
@@ -108,10 +100,7 @@ export default function ImageDetailPage() {
           a.click()
           URL.revokeObjectURL(url)
           document.body.removeChild(a)
-          toast({
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          toast.success("Image downloaded successfully")
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -120,11 +109,7 @@ export default function ImageDetailPage() {
       }
     } catch (error) {
       console.error('Download error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to download image",
-      })
+      toast.error("Failed to download image")
     } finally {
       setDownloading(false)
       NProgress.done()
@@ -137,23 +122,28 @@ export default function ImageDetailPage() {
     NProgress.start()
     try {
       setSharing(true)
-      await navigator.clipboard.writeText(createSecureImageUrl(image.image_url))
-      toast({
-        title: "Success",
-        description: "Image link copied to clipboard",
-      })
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Generated Image',
+          text: image.prompt || 'Check out this AI-generated image!',
+          url: createSecureImageUrl(image.image_url)
+        })
+      } else {
+        await navigator.clipboard.writeText(createSecureImageUrl(image.image_url))
+        toast.success("Image URL copied to clipboard")
+      }
     } catch (error) {
       console.error('Share error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to copy link",
-      })
+      toast.error("Failed to share image")
     } finally {
       setSharing(false)
       NProgress.done()
     }
   }
+
+  const canShare = typeof navigator !== 'undefined' && 
+    navigator.share && 
+    typeof navigator.share === 'function'
 
   if (loading) {
     return (
@@ -288,12 +278,12 @@ export default function ImageDetailPage() {
                 {sharing ? (
                   <>
                     <LoadingSpinner className="mr-2 h-4 w-4" />
-                    Copying...
+                    {canShare ? "Sharing..." : "Copying..."}
                   </>
                 ) : (
                   <>
                     <Share className="mr-2 h-4 w-4" />
-                    Copy Link
+                    {canShare ? "Share" : "Copy Link"}
                   </>
                 )}
               </Button>

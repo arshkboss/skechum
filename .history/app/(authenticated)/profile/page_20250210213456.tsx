@@ -11,7 +11,7 @@ import { Download, ExternalLink, ImageOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useInView } from "react-intersection-observer"
 import { motion } from "framer-motion"
 import NProgress from "nprogress"
@@ -65,7 +65,6 @@ export default function ProfilePage() {
   const { ref, inView } = useInView()
   const ITEMS_PER_PAGE = 12
   const [downloadFormat, setDownloadFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
-  const { toast } = useToast()
 
   // Move loadImages to useCallback to avoid scope issues
   const loadImages = useCallback(async (pageNum: number) => {
@@ -142,11 +141,7 @@ export default function ProfilePage() {
           await writable.write(blob)
           await writable.close()
           
-          toast({
-            variant: "success",
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          toast.success("Image downloaded successfully")
         } else {
           // Fall back to traditional method
           const url = URL.createObjectURL(blob)
@@ -156,11 +151,8 @@ export default function ProfilePage() {
           document.body.appendChild(a)
           a.click()
           URL.revokeObjectURL(url)
-          toast({
-            variant: "success",
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          document.body.removeChild(a)
+          toast.success("Image downloaded successfully")
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -169,11 +161,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Download error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to download image",
-      })
+      toast.error("Failed to download image")
     } finally {
       setDownloadingId(null)
       NProgress.done()
@@ -188,18 +176,10 @@ export default function ProfilePage() {
     try {
       setSharingId(imageId)
       await navigator.clipboard.writeText(createSecureImageUrl(imageUrl))
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Image link copied to clipboard",
-      })
+      toast.success("Image link copied to clipboard")
     } catch (error) {
       console.error('Share error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to copy link",
-      })
+      toast.error("Failed to copy link")
     } finally {
       setSharingId(null)
       NProgress.done()

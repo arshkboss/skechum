@@ -11,7 +11,7 @@ import { Download, ExternalLink, ImageOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useInView } from "react-intersection-observer"
 import { motion } from "framer-motion"
 import NProgress from "nprogress"
@@ -65,7 +65,6 @@ export default function ProfilePage() {
   const { ref, inView } = useInView()
   const ITEMS_PER_PAGE = 12
   const [downloadFormat, setDownloadFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
-  const { toast } = useToast()
 
   // Move loadImages to useCallback to avoid scope issues
   const loadImages = useCallback(async (pageNum: number) => {
@@ -142,11 +141,7 @@ export default function ProfilePage() {
           await writable.write(blob)
           await writable.close()
           
-          toast({
-            variant: "success",
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          toast.success("Image downloaded successfully")
         } else {
           // Fall back to traditional method
           const url = URL.createObjectURL(blob)
@@ -156,11 +151,8 @@ export default function ProfilePage() {
           document.body.appendChild(a)
           a.click()
           URL.revokeObjectURL(url)
-          toast({
-            variant: "success",
-            title: "Success",
-            description: "Image downloaded successfully",
-          })
+          document.body.removeChild(a)
+          toast.success("Image downloaded successfully")
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -169,11 +161,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Download error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to download image",
-      })
+      toast.error("Failed to download image")
     } finally {
       setDownloadingId(null)
       NProgress.done()
@@ -188,18 +176,10 @@ export default function ProfilePage() {
     try {
       setSharingId(imageId)
       await navigator.clipboard.writeText(createSecureImageUrl(imageUrl))
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Image link copied to clipboard",
-      })
+      toast.success("Image link copied to clipboard")
     } catch (error) {
       console.error('Share error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to copy link",
-      })
+      toast.error("Failed to copy link")
     } finally {
       setSharingId(null)
       NProgress.done()
@@ -251,8 +231,8 @@ export default function ProfilePage() {
               transition={{ duration: 0.3, delay: index * 0.1 }}
               className="w-full"
             >
-              <Card className="overflow-hidden group">
-                <Link href={`/image/${image.id}`}>
+              <Link href={`/image/${image.id}`}>
+                <Card className="overflow-hidden group">
                   <div className={cn(
                     "aspect-square relative",
                     image.format === 'SVG' 
@@ -298,141 +278,136 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                </Link>
-                <div className="p-4 space-y-3">
-                  {/* Prompt with its own link */}
-                  {image.prompt && (
-                    <Link href={`/image/${image.id}`}>
-                      <p className="text-sm line-clamp-2 font-medium hover:text-primary">
+                  <div className="p-4 space-y-3">
+                    {/* Prompt - only if available */}
+                    {image.prompt && (
+                      <p className="text-sm line-clamp-2 font-medium">
                         {image.prompt}
                       </p>
-                    </Link>
-                  )}
-                  
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className={cn(
-                            "flex-1 h-8",
-                            downloadingId === image.id && "opacity-50 cursor-not-allowed"
-                          )}
-                          disabled={downloadingId === image.id}
-                        >
-                          {downloadingId === image.id ? (
-                            <>
-                              <LoadingSpinner className="h-4 w-4 mr-2" />
-                              Downloading...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download As
-                            </>
-                          )}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[180px]">
-                        <DropdownMenuItem 
-                          onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'PNG')}
-                        >
-                          PNG Image
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'JPG')}
-                        >
-                          JPG Image
-                        </DropdownMenuItem>
-                        {image.format === 'SVG' && (
-                          <DropdownMenuItem 
-                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'SVG')}
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={cn(
+                              "flex-1 h-8",
+                              downloadingId === image.id && "opacity-50 cursor-not-allowed"
+                            )}
+                            disabled={downloadingId === image.id}
                           >
-                            SVG Vector
+                            {downloadingId === image.id ? (
+                              <>
+                                <LoadingSpinner className="h-4 w-4 mr-2" />
+                                Downloading...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="h-4 w-4 mr-2" />
+                                Download As
+                              </>
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-[180px]">
+                          <DropdownMenuItem 
+                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'PNG')}
+                          >
+                            PNG Image
                           </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'JPG')}
+                          >
+                            JPG Image
+                          </DropdownMenuItem>
+                          {image.format === 'SVG' && (
+                            <DropdownMenuItem 
+                              onClick={() => handleDownload(image.image_url, image.prompt, image.id, 'SVG')}
+                            >
+                              SVG Vector
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={cn(
+                          "flex-1 h-8",
+                          sharingId === image.id && "opacity-50 cursor-not-allowed"
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className={cn(
-                        "flex-1 h-8",
-                        sharingId === image.id && "opacity-50 cursor-not-allowed"
-                      )}
-                      onClick={(e) => {
-                        e.preventDefault() // Prevent any parent click events
-                        handleShare(image.image_url, image.prompt, image.id)
-                      }}
-                      disabled={sharingId === image.id}
-                    >
-                      {sharingId === image.id ? (
-                        <>
-                          <LoadingSpinner className="h-4 w-4 mr-2" />
-                          Copying...
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Copy Link
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {/* Model Badge - only if available */}
-                    {image.settings.model && (
-                      <Badge variant="outline" className="text-xs">
-                        {image.settings.model}
-                      </Badge>
-                    )}
+                        onClick={() => handleShare(image.image_url, image.prompt, image.id)}
+                        disabled={sharingId === image.id}
+                      >
+                        {sharingId === image.id ? (
+                          <>
+                            <LoadingSpinner className="h-4 w-4 mr-2" />
+                            Copying...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Copy Link
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     
-                    {/* Size Badge - only if available */}
-                    {image.settings.size && (
-                      <Badge variant="secondary" className="text-xs">
-                        {image.settings.size}
-                      </Badge>
-                    )}
-                    
-                    {/* Steps Badge - only if available */}
-                    {image.settings.steps && (
-                      <Badge variant="outline" className="text-xs">
-                        {image.settings.steps} steps
-                      </Badge>
-                    )}
-                    
-                    {/* Format Badge */}
-                    <Badge 
-                      variant={image.format === 'SVG' ? "secondary" : "outline"} 
-                      className={cn(
-                        "text-xs",
-                        image.format === 'SVG' && "font-medium"
-                      )}
-                    >
-                      {image.format}
-                    </Badge>
-                  </div>
-
-                  {/* Generation Time and Created At */}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {image.generation_time && (
-                      <span className="flex items-center gap-1">
-                        <span>Generated in</span>
-                        <Badge variant="secondary" className="text-[10px]">
-                          {(image.generation_time / 1000).toFixed(1)}s
+                    <div className="flex flex-wrap gap-2">
+                      {/* Model Badge - only if available */}
+                      {image.settings.model && (
+                        <Badge variant="outline" className="text-xs">
+                          {image.settings.model}
                         </Badge>
+                      )}
+                      
+                      {/* Size Badge - only if available */}
+                      {image.settings.size && (
+                        <Badge variant="secondary" className="text-xs">
+                          {image.settings.size}
+                        </Badge>
+                      )}
+                      
+                      {/* Steps Badge - only if available */}
+                      {image.settings.steps && (
+                        <Badge variant="outline" className="text-xs">
+                          {image.settings.steps} steps
+                        </Badge>
+                      )}
+                      
+                      {/* Format Badge */}
+                      <Badge 
+                        variant={image.format === 'SVG' ? "secondary" : "outline"} 
+                        className={cn(
+                          "text-xs",
+                          image.format === 'SVG' && "font-medium"
+                        )}
+                      >
+                        {image.format}
+                      </Badge>
+                    </div>
+
+                    {/* Generation Time and Created At */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {image.generation_time && (
+                        <span className="flex items-center gap-1">
+                          <span>Generated in</span>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {(image.generation_time / 1000).toFixed(1)}s
+                          </Badge>
+                        </span>
+                      )}
+                      <span>•</span>
+                      <span>
+                        {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
                       </span>
-                    )}
-                    <span>•</span>
-                    <span>
-                      {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
-                    </span>
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </Link>
             </motion.div>
           ))}
           {/* Intersection observer target */}

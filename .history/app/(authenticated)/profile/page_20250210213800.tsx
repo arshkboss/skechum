@@ -143,7 +143,6 @@ export default function ProfilePage() {
           await writable.close()
           
           toast({
-            variant: "success",
             title: "Success",
             description: "Image downloaded successfully",
           })
@@ -157,7 +156,6 @@ export default function ProfilePage() {
           a.click()
           URL.revokeObjectURL(url)
           toast({
-            variant: "success",
             title: "Success",
             description: "Image downloaded successfully",
           })
@@ -189,7 +187,6 @@ export default function ProfilePage() {
       setSharingId(imageId)
       await navigator.clipboard.writeText(createSecureImageUrl(imageUrl))
       toast({
-        variant: "success",
         title: "Success",
         description: "Image link copied to clipboard",
       })
