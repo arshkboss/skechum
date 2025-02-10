@@ -87,12 +87,14 @@ export default function ExplorePage() {
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounce(search, 500)
 
+  const [error, setError] = useState<string | null>(null)
+
   const fetchImages = async (categoryId: string, page: number) => {
     setLoading(prev => ({ ...prev, [categoryId]: true }))
+    setError(null)
     NProgress.start()
     
     try {
-      // Build query parameters
       const params = new URLSearchParams({
         category: categoryId,
         page: page.toString(),
@@ -103,11 +105,16 @@ export default function ExplorePage() {
         params.append('search', debouncedSearch)
       }
 
-      // Fetch images from API
+      console.log(`Fetching ${categoryId} images:`, params.toString())
+
       const response = await fetch(`/api/explore?${params}`)
-      const data: ExploreResponse = await response.json()
+      const data = await response.json()
       
       console.log(`[Explore] Received data for ${categoryId}:`, data)
+
+      if (data.error) {
+        throw new Error(data.error)
+      }
       
       if (data && Array.isArray(data.images)) {
         setCategories(prev => prev.map(cat => {
@@ -122,10 +129,11 @@ export default function ExplorePage() {
           return cat
         }))
       } else {
-        console.error(`[Explore] Invalid data format for ${categoryId}:`, data)
+        throw new Error(`Invalid data format for ${categoryId}`)
       }
     } catch (error) {
       console.error(`[Explore] Error fetching ${categoryId} images:`, error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch images')
     } finally {
       setLoading(prev => ({ ...prev, [categoryId]: false }))
       NProgress.done()
@@ -155,6 +163,12 @@ export default function ExplorePage() {
           className="pl-10"
         />
       </div>
+
+      {error && (
+        <div className="p-4 text-red-500 bg-red-50 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {categories.map((category) => (
         <section key={category.id} className="space-y-6">

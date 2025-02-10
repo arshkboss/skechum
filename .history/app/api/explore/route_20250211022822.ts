@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
   try {
-    // Create a public Supabase client without authentication
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     
@@ -13,46 +12,22 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '8')
 
+    console.log('Fetching images with params:', { searchQuery, category, page, limit })
+
     // Calculate offset for pagination
     const offset = (page - 1) * limit
 
-    // Build base query to select public images
+    // Start with a simple query first
     let query = supabase
       .from('user_images')
       .select('*', { count: 'exact' })
-      // Only select published/public images
-      .eq('is_public', true)
-
-    // Add search filters if search query exists
-    if (searchQuery) {
-      query = query.or(
-        `prompt.ilike.%${searchQuery}%,` +
-        `model.ilike.%${searchQuery}%,` +
-        `style.ilike.%${searchQuery}%`
-      )
-    }
-
-    // Add category filters if needed
-    if (category && category !== 'all') {
-      switch (category) {
-        case 'latest':
-          // No additional filter needed, just sort by date
-          break
-        case 'trending':
-          // Add filter for trending images (e.g., by likes or views)
-          query = query.gte('likes_count', 5)
-          break
-        case 'featured':
-          // Add filter for featured images
-          query = query.eq('is_featured', true)
-          break
-      }
-    }
-
-    // Add pagination and ordering
-    query = query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    // Add search if provided
+    if (searchQuery) {
+      query = query.or(`prompt.ilike.%${searchQuery}%`)
+    }
 
     // Execute the query
     const { data, error, count } = await query
@@ -62,11 +37,14 @@ export async function GET(request: Request) {
       throw error
     }
 
+    console.log('Query results:', {
+      count,
+      resultsCount: data?.length || 0,
+      firstResult: data?.[0]
+    })
+
     // Calculate if there are more images
     const hasMore = count ? offset + limit < count : false
-
-    // Cache successful responses
-    const cacheTime = process.env.NODE_ENV === 'development' ? 60 : 3600
 
     return NextResponse.json(
       { 
@@ -76,7 +54,7 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          'Cache-Control': `public, s-maxage=${cacheTime}, stale-while-revalidate`,
+          'Cache-Control': 'no-cache' // Disable cache during debugging
         },
       }
     )
@@ -86,7 +64,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ 
       images: [], 
       error: 'Failed to fetch images',
-      details: process.env.NODE_ENV === 'development' ? error : undefined
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 } 

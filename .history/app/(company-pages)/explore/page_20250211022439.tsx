@@ -217,7 +217,16 @@ export default function ExplorePage() {
                     </div>
                     <div className="p-4 space-y-2">
                       <p className="text-sm line-clamp-2 font-medium">{image.prompt}</p>
-                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {image.model}
+                        </Badge>
+                        {image.settings.size && (
+                          <Badge variant="secondary" className="text-xs">
+                            {image.settings.size}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{image.user_email}</span>
                         <span>{formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}</span>

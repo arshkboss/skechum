@@ -8,6 +8,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { ImageOff, ChevronRight, Search } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import NProgress from "nprogress"
 import Link from "next/link"
@@ -37,13 +38,6 @@ interface Category {
   images: ExploreImage[]
   hasMore: boolean
   page: number
-}
-
-// Add this interface for API response
-interface ExploreResponse {
-  images: ExploreImage[]
-  hasMore: boolean
-  total: number
 }
 
 const ITEMS_PER_PAGE = 8
@@ -92,7 +86,6 @@ export default function ExplorePage() {
     NProgress.start()
     
     try {
-      // Build query parameters
       const params = new URLSearchParams({
         category: categoryId,
         page: page.toString(),
@@ -103,9 +96,8 @@ export default function ExplorePage() {
         params.append('search', debouncedSearch)
       }
 
-      // Fetch images from API
       const response = await fetch(`/api/explore?${params}`)
-      const data: ExploreResponse = await response.json()
+      const data = await response.json()
       
       console.log(`[Explore] Received data for ${categoryId}:`, data)
       
@@ -217,7 +209,16 @@ export default function ExplorePage() {
                     </div>
                     <div className="p-4 space-y-2">
                       <p className="text-sm line-clamp-2 font-medium">{image.prompt}</p>
-                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {image.model}
+                        </Badge>
+                        {image.settings.size && (
+                          <Badge variant="secondary" className="text-xs">
+                            {image.settings.size}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{image.user_email}</span>
                         <span>{formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}</span>
