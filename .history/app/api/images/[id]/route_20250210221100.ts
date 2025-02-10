@@ -1,14 +1,16 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// For App Router, the params are passed as part of the second argument
-export async function GET(
-  request: NextRequest,
-  { params }: {
-    params: {
-      id: string
-    }
+// The params should not be a Promise in the type definition
+interface RouteContext {
+  params: {
+    id: string
   }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: RouteContext  // Destructure params directly from the context
 ) {
   try {
     const supabase = await createClient()
@@ -25,9 +27,6 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching image:', error)
-    return NextResponse.json(
-      { error: 'Image not found' }, 
-      { status: 404 }
-    )
+    return new NextResponse('Image not found', { status: 404 })
   }
 } 
