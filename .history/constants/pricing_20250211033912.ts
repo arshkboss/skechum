@@ -47,7 +47,7 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     credits: 800,
     price: 24,
-    pricePerCredit: 0.03,
+    pricePerCredit: 0.048,
     originalPrice: 30,
     isPopular: true,
     image: "/pricing-card/800.svg",

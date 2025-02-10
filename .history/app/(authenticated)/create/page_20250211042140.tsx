@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import { useUser } from "@/hooks/use-user"
@@ -44,16 +44,14 @@ export default function CreatePage() {
   const [selectedStyle, setSelectedStyle] = useState<StyleOption>(STYLE_OPTIONS[0].id)
   const [originalFormat, setOriginalFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
   const router = useRouter()
-  const [isProcessing, setIsProcessing] = useState(false)
 
   const handleGenerate = async () => {
-    if (!prompt || isProcessing) {
+    if (!prompt) {
+      toast.error("Please enter a prompt")
       return
     }
     
     try {
-      setIsProcessing(true)
-      
       // First attempt to deduct credits
       const deductResponse = await fetch('/api/credits/deduct', {
         method: 'POST',
@@ -69,16 +67,6 @@ export default function CreatePage() {
           return
         }
         throw new Error(error.error || 'Failed to process credits')
-      }
-
-      // Get the updated credits and dispatch event
-      const creditData = await deductResponse.json()
-      if (creditData.success && typeof creditData.remainingCredits === 'number') {
-        window.dispatchEvent(
-          new CustomEvent('creditsUpdated', { 
-            detail: { credits: creditData.remainingCredits }
-          })
-        )
       }
 
       // Continue with existing generation logic
@@ -118,8 +106,6 @@ export default function CreatePage() {
       setImageLoading(false)
       stopTimer()
       toast.error(error instanceof Error ? error.message : "Failed to generate image. Please try again.")
-    } finally {
-      setIsProcessing(false)
     }
   }
 
@@ -255,7 +241,7 @@ export default function CreatePage() {
             />
             <GenerateButton
               status={status}
-              isLoading={imageLoading || isProcessing}
+              isLoading={imageLoading}
               isValid={isValidPrompt(prompt)}
               onClick={handleGenerate}
             />

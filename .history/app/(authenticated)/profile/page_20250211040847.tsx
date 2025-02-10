@@ -393,15 +393,12 @@ export default function ProfilePage() {
                   
                   <div className="flex flex-wrap gap-2">
                     {/* Model Badge - only if available */}
-                    {image.style && (
+                    {image.settings.model && (
                       <Badge variant="outline" className="text-xs">
-                        {image.style === "vector_illustration/doodle_line_art" ? "Doodle B/W" : "Watercolor"}
+                        {image.settings.model}
                       </Badge>
                     )}
-
-
                     
-
                     {/* Size Badge - only if available */}
                     {image.settings.size && (
                       <Badge variant="secondary" className="text-xs">
@@ -409,7 +406,12 @@ export default function ProfilePage() {
                       </Badge>
                     )}
                     
-                    
+                    {/* Steps Badge - only if available */}
+                    {image.settings.steps && (
+                      <Badge variant="outline" className="text-xs">
+                        {image.settings.steps} steps
+                      </Badge>
+                    )}
                     
                     {/* Format Badge */}
                     <Badge 

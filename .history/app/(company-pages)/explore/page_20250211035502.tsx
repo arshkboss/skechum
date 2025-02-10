@@ -58,7 +58,11 @@ const CATEGORIES = [
     title: 'Latest Creations',
     description: 'Fresh off the AI canvas'
   },
-  
+  {
+    id: 'trending',
+    title: 'Trending Now',
+    description: 'Popular in the community'
+  },
   {
     id: 'featured',
     title: 'Featured Artists',

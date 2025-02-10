@@ -13,52 +13,46 @@ interface PricingPlan {
 
 export const pricingPlans: readonly PricingPlan[] = [
   {
-    credits: 150,
+    credits: 200,
     price: 8,
-    pricePerCredit: 0.053,
-    image: "/pricing-card/150.svg",
-    imageAlt: "150 credits",
+    pricePerCredit: 0.08,
+    image: "/pricing-card/100.svg",
+    imageAlt: "200 credits",
 
 
     features: [
-      "150 credits",
+      "200 credits",
       "Commercial use",
-      "PNG, JPG, SVG export"
+      "PNG, JPG export"
     ] as const
-
-
   },
 
   {
-    credits: 400,
+    credits: 500,
     price: 14,
-    pricePerCredit: 0.035,
-    image: "/pricing-card/400.svg",
-    imageAlt: "400 credits",
-
+    pricePerCredit: 0.07,
+    image: "/pricing-card/500.svg",
+    imageAlt: "500 credits",
 
     features: [
-      "400 credits",
+      "500 credits",
       "Commercial use",
-      "PNG, JPG, SVG export"
+      "PNG, JPG export"
     ] as const
-
   },
   {
-    credits: 800,
+    credits: 1000,
     price: 24,
-    pricePerCredit: 0.03,
+    pricePerCredit: 0.048,
     originalPrice: 30,
     isPopular: true,
-    image: "/pricing-card/800.svg",
-    imageAlt: "800 credits",
-
+    image: "/pricing-card/1000.svg",
+    imageAlt: "1000 credits",
     features: [
-      "800 credits",
+      "1000 credits",
       "Commercial use",
       "SVG, PNG, JPG export"
     ] as const
-
 
   }
 ] as const 

@@ -71,15 +71,13 @@ export default function CreatePage() {
         throw new Error(error.error || 'Failed to process credits')
       }
 
-      // Get the updated credits and dispatch event
+      // Get the updated credits
       const creditData = await deductResponse.json()
-      if (creditData.success && typeof creditData.remainingCredits === 'number') {
-        window.dispatchEvent(
-          new CustomEvent('creditsUpdated', { 
-            detail: { credits: creditData.remainingCredits }
-          })
-        )
-      }
+      
+      // Dispatch custom event to update navbar
+      window.dispatchEvent(new CustomEvent('creditsUpdated', { 
+        detail: { credits: creditData.remainingCredits }
+      }))
 
       // Continue with existing generation logic
       setStatus('queued')

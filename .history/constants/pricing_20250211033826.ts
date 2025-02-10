@@ -15,8 +15,8 @@ export const pricingPlans: readonly PricingPlan[] = [
   {
     credits: 150,
     price: 8,
-    pricePerCredit: 0.053,
-    image: "/pricing-card/150.svg",
+    pricePerCredit: 0.04,
+    image: "/pricing-card/100.svg",
     imageAlt: "150 credits",
 
 
@@ -45,20 +45,18 @@ export const pricingPlans: readonly PricingPlan[] = [
 
   },
   {
-    credits: 800,
+    credits: 1000,
     price: 24,
-    pricePerCredit: 0.03,
+    pricePerCredit: 0.048,
     originalPrice: 30,
     isPopular: true,
-    image: "/pricing-card/800.svg",
-    imageAlt: "800 credits",
-
+    image: "/pricing-card/1000.svg",
+    imageAlt: "1000 credits",
     features: [
-      "800 credits",
+      "1000 credits",
       "Commercial use",
       "SVG, PNG, JPG export"
     ] as const
-
 
   }
 ] as const 

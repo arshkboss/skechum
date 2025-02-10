@@ -80,11 +80,10 @@ export function ImagePreview({
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/80">
                 <div className="text-center">
-                  <PencilLoader />
+                  <LoadingSpinner className="h-8 w-8 mb-2" />
                   <p className="text-sm text-muted-foreground">Loading image...</p>
                 </div>
               </div>
-
             )}
           </>
         ) : (
@@ -92,7 +91,7 @@ export function ImagePreview({
             <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
               {(status === 'generating' || status === 'queued') ? (
                 <>
-                  <div className="rounded-full  p-4 mb-4">
+                  <div className="rounded-full bg-primary/10 p-4 mb-4">
                     <PencilLoader />
                   </div>
                   <p className="font-medium">

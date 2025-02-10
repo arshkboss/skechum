@@ -80,11 +80,10 @@ export function ImagePreview({
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/80">
                 <div className="text-center">
-                  <PencilLoader />
+                  <LoadingSpinner className="h-8 w-8 mb-2" />
                   <p className="text-sm text-muted-foreground">Loading image...</p>
                 </div>
               </div>
-
             )}
           </>
         ) : (

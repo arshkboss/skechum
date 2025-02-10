@@ -58,23 +58,17 @@ const CATEGORIES = [
     title: 'Latest Creations',
     description: 'Fresh off the AI canvas'
   },
-  
+  {
+    id: 'trending',
+    title: 'Trending Now',
+    description: 'Popular in the community'
+  },
   {
     id: 'featured',
     title: 'Featured Artists',
     description: 'Exceptional artworks'
   }
 ]
-
-function toTitleCase(str: string) {
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    )
-    .join(' ')
-}
 
 export default function ExplorePage() {
   const [categories, setCategories] = useState<Category[]>(
@@ -222,9 +216,7 @@ export default function ExplorePage() {
                       </div>
                     </div>
                     <div className="p-4 space-y-2">
-                      <p className="text-sm line-clamp-2 font-medium text-muted-foreground">
-                        {toTitleCase(image.prompt)}
-                      </p>
+                      <p className="text-sm line-clamp-2 font-medium">{image.prompt.toWellFormed()}</p>
                       
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{image.user_email}</span>

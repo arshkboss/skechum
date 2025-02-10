@@ -16,11 +16,6 @@ import {
 } from "@/components/ui/sheet"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
-// Define the custom event type
-interface CreditsUpdateEvent extends CustomEvent {
-  detail: { credits: number }
-}
-
 /**
  * Navbar component with theme switcher
  * Provides navigation and theme switching functionality
@@ -46,20 +41,19 @@ export default function Navbar({ user }: { user: any }) {
       }
     }
 
-    // Listen for credits updates with proper typing
-    const handleCreditsUpdate = (event: Event) => {
-      const customEvent = event as CreditsUpdateEvent
-      setCredits(customEvent.detail.credits)
+    // Listen for credits updates
+    const handleCreditsUpdate = (event: CustomEvent<{ credits: number }>) => {
+      setCredits(event.detail.credits)
     }
 
     // Add event listener
-    window.addEventListener('creditsUpdated', handleCreditsUpdate)
+    window.addEventListener('creditsUpdated', handleCreditsUpdate as EventListener)
     
     fetchCredits()
 
     // Cleanup
     return () => {
-      window.removeEventListener('creditsUpdated', handleCreditsUpdate)
+      window.removeEventListener('creditsUpdated', handleCreditsUpdate as EventListener)
     }
   }, [user?.id])
 

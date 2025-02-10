@@ -395,7 +395,7 @@ export default function ProfilePage() {
                     {/* Model Badge - only if available */}
                     {image.style && (
                       <Badge variant="outline" className="text-xs">
-                        {image.style === "vector_illustration/doodle_line_art" ? "Doodle B/W" : "Watercolor"}
+                        {image.style === "vector_illustration/doodle_line_art" ? "Doodle Line Art" : "Watercolor"}
                       </Badge>
                     )}
 
