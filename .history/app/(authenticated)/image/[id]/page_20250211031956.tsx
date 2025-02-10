@@ -83,27 +83,6 @@ export default function ImageDetailPage() {
     checkAuthStatus()
   }, [])
 
-  // Add event listener for right click
-  useEffect(() => {
-    const handleRightClick = (e: MouseEvent) => {
-      e.preventDefault()
-      toast({
-        title: "Image Protected",
-        description: "Please use the download button to save this image",
-        variant: "default",
-      })
-      return false
-    }
-
-    // Add the event listener
-    document.addEventListener('contextmenu', handleRightClick)
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('contextmenu', handleRightClick)
-    }
-  }, [toast])
-
   const handleDownload = async (format: 'PNG' | 'SVG' | 'JPG') => {
     if (!image || downloading) return
 
@@ -249,9 +228,8 @@ export default function ImageDetailPage() {
                 <img
                   src={image.image_url}
                   alt={image.prompt}
-                  className="w-full h-full object-contain pointer-events-none"
+                  className="w-full h-full object-contain"
                   loading="eager"
-                  onContextMenu={(e) => e.preventDefault()}
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                     e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
@@ -262,8 +240,7 @@ export default function ImageDetailPage() {
                   src={image.image_url}
                   alt={image.prompt}
                   fill
-                  className="object-cover pointer-events-none"
-                  onContextMenu={(e) => e.preventDefault()}
+                  className="object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                     e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')

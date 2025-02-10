@@ -112,3 +112,7 @@ img {
   user-drag: none;
 }
 
+/* Optional: Add a custom cursor to indicate no-download */
+.select-none {
+  cursor: not-allowed;
+} 
