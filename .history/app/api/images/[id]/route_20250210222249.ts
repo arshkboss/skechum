@@ -1,14 +1,14 @@
 import { createClient } from "@/utils/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-type Props = {
-  params: { id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
-}
-
+// For App Router, the params are passed as part of the second argument
 export async function GET(
   request: NextRequest,
-  props: Props
+  { params }: {
+    params: {
+      id: string
+    }
+  }
 ) {
   try {
     const supabase = await createClient()
@@ -16,7 +16,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('user_images')
       .select('*')
-      .eq('id', props.params.id)
+      .eq('id', params.id)
       .single()
 
     if (error) throw error
