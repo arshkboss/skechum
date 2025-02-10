@@ -169,4 +169,22 @@ export async function saveUserImage(
     console.error('Error saving image:', error);
     return { data: null, error };
   }
+}
+
+async function convertImage(
+  input: File | Blob | string, 
+  fromFormat: ImageFormat, 
+  toFormat: ImageFormat
+): Promise<Blob> {
+  // ... implementation
+}
+
+interface GeneratedImage {
+  prompt: string;
+  format: ImageFormat;
+  // ... other properties
+}
+
+function isValidImageFormat(format: string): format is ImageFormat {
+  return ['PNG', 'SVG', 'JPG'].includes(format as ImageFormat);
 } 
