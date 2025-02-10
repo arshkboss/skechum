@@ -17,7 +17,7 @@ import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
+import { createClient } from "@/utils/supabase/server"
 
 interface ImageDetail {
   id: string
@@ -36,7 +36,7 @@ interface ImageDetail {
 }
 
 async function checkAuth() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   return !!session
 }
@@ -90,7 +90,7 @@ export default function ImageDetailPage() {
       const currentPath = `/image/${params.id}`
       const returnUrl = encodeURIComponent(currentPath)
       
-      router.push(`/sign-in?return_url=${returnUrl}`)
+      router.push(`/signin?return_url=${returnUrl}`)
       return
     }
 

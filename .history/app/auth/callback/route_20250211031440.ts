@@ -21,5 +21,5 @@ export async function GET(request: Request) {
   }
 
   // Otherwise redirect to dashboard as fallback
-  return NextResponse.redirect(`${origin}/create`);
+  return NextResponse.redirect(`${origin}/dashboard`);
 }

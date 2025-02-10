@@ -16,8 +16,6 @@ import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
 
 interface ImageDetail {
   id: string
@@ -35,12 +33,6 @@ interface ImageDetail {
   created_at: string
 }
 
-async function checkAuth() {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return !!session
-}
-
 export default function ImageDetailPage() {
   const params = useParams()
   const [image, setImage] = useState<ImageDetail | null>(null)
@@ -48,8 +40,6 @@ export default function ImageDetailPage() {
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
   const { toast } = useToast()
-  const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
     async function fetchImage() {
@@ -75,24 +65,8 @@ export default function ImageDetailPage() {
     }
   }, [params.id, toast])
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const isAuthed = await checkAuth()
-      setIsAuthenticated(isAuthed)
-    }
-    checkAuthStatus()
-  }, [])
-
   const handleDownload = async (format: 'PNG' | 'SVG' | 'JPG') => {
     if (!image || downloading) return
-
-    if (!isAuthenticated) {
-      const currentPath = `/image/${params.id}`
-      const returnUrl = encodeURIComponent(currentPath)
-      
-      router.push(`/sign-in?return_url=${returnUrl}`)
-      return
-    }
 
     NProgress.start()
     try {
@@ -204,15 +178,13 @@ export default function ImageDetailPage() {
     <div className="container mx-auto p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
-        <Button 
-          variant="link"
+        <Link 
+          href="/profile" 
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-          onClick={() => router.back()}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
-
+          Back to Profile
+        </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
           {/* Image Display */}
@@ -332,7 +304,11 @@ export default function ImageDetailPage() {
               <div>
                 <h3 className="text-sm font-medium mb-2">Details</h3>
                 <div className="flex flex-wrap gap-2">
-                  
+                  {image.settings.model && (
+                    <Badge variant="outline">
+                      {image.settings.model}
+                    </Badge>
+                  )}
                   {image.settings.size && (
                     <Badge variant="secondary">
                       {image.settings.size}

@@ -17,8 +17,6 @@ import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
-
 interface ImageDetail {
   id: string
   image_url: string
@@ -35,12 +33,6 @@ interface ImageDetail {
   created_at: string
 }
 
-async function checkAuth() {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return !!session
-}
-
 export default function ImageDetailPage() {
   const params = useParams()
   const [image, setImage] = useState<ImageDetail | null>(null)
@@ -49,8 +41,6 @@ export default function ImageDetailPage() {
   const [sharing, setSharing] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-
   useEffect(() => {
     async function fetchImage() {
       try {
@@ -75,24 +65,8 @@ export default function ImageDetailPage() {
     }
   }, [params.id, toast])
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const isAuthed = await checkAuth()
-      setIsAuthenticated(isAuthed)
-    }
-    checkAuthStatus()
-  }, [])
-
   const handleDownload = async (format: 'PNG' | 'SVG' | 'JPG') => {
     if (!image || downloading) return
-
-    if (!isAuthenticated) {
-      const currentPath = `/image/${params.id}`
-      const returnUrl = encodeURIComponent(currentPath)
-      
-      router.push(`/sign-in?return_url=${returnUrl}`)
-      return
-    }
 
     NProgress.start()
     try {
@@ -210,7 +184,7 @@ export default function ImageDetailPage() {
           onClick={() => router.back()}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
+          Back to Profile
         </Button>
 
 
@@ -332,7 +306,11 @@ export default function ImageDetailPage() {
               <div>
                 <h3 className="text-sm font-medium mb-2">Details</h3>
                 <div className="flex flex-wrap gap-2">
-                  
+                  {image.settings.model && (
+                    <Badge variant="outline">
+                      {image.settings.model}
+                    </Badge>
+                  )}
                   {image.settings.size && (
                     <Badge variant="secondary">
                       {image.settings.size}

@@ -90,7 +90,7 @@ export default function ImageDetailPage() {
       const currentPath = `/image/${params.id}`
       const returnUrl = encodeURIComponent(currentPath)
       
-      router.push(`/sign-in?return_url=${returnUrl}`)
+      router.push(`/signin?return_url=${returnUrl}`)
       return
     }
 
