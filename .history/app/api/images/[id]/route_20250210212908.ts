@@ -1,18 +1,11 @@
 import { createClient } from "@/utils/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
-
-type RouteParams = {
-  params: {
-    id: string
-  }
-}
+import { NextResponse } from "next/server"
 
 export async function GET(
-  req: NextRequest,
-  context: Promise<RouteParams>
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = await context
     const supabase = await createClient()
 
     const { data, error } = await supabase
