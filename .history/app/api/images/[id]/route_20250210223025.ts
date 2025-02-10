@@ -3,16 +3,15 @@ import { NextResponse } from "next/server"
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const id = (await params).id
     const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('user_images')
       .select('*')
-      .eq('id', id)
+      .eq('id', params.id)
       .single()
 
     if (error) throw error

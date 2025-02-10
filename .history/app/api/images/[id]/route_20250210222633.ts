@@ -1,18 +1,22 @@
 import { createClient } from "@/utils/supabase/server"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  props: Props
 ) {
   try {
-    const id = (await params).id
     const supabase = await createClient()
 
     const { data, error } = await supabase
       .from('user_images')
       .select('*')
-      .eq('id', id)
+      .eq('id', props.params.id)
       .single()
 
     if (error) throw error
@@ -21,6 +25,9 @@ export async function GET(
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching image:', error)
-    return new NextResponse('Image not found', { status: 404 })
+    return NextResponse.json(
+      { error: 'Image not found' }, 
+      { status: 404 }
+    )
   }
 } 
