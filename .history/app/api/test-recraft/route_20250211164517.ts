@@ -2,7 +2,8 @@ import { fal } from "@fal-ai/client"
 import { NextResponse } from "next/server"
 
 fal.config({
-  credentials: process.env.FAL_KEY
+  credentials: process.env.FAL_KEY,
+  requestTimeout: 15000 // 15 seconds
 })
 
 export const maxDuration = 30 // Set max duration to 30 seconds for Vercel
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
         },
         logs: true,
         pollInterval: 1000, // Poll every second
+        maxPollDuration: 25000 // Max 25 seconds of polling
       }),
       timeoutPromise
     ])

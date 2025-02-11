@@ -100,29 +100,7 @@ export default function CreatePage() {
         })
       })
 
-      if (!response.ok) {
-        if (response.status === 504) {
-          // Handle timeout specifically
-          toast.error("Generation is taking longer than expected. Please try again.")
-          
-          // Optionally, implement credit refund for timeout
-          try {
-            await fetch('/api/credits/refund', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                style: selectedStyle,
-                reason: 'timeout'
-              })
-            })
-          } catch (refundError) {
-            console.error('Failed to refund credits:', refundError)
-          }
-          
-          return
-        }
-        throw new Error('Generation failed')
-      }
+      if (!response.ok) throw new Error('Generation failed')
 
       const result = await response.json()
 
