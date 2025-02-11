@@ -108,9 +108,9 @@ export default async function RootLayout({
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
           
-          
+          enableSystem
+          disableTransitionOnChange
         ><NextTopLoader color="#D63418FF" showSpinner={false} />
           
           <main className="min-h-screen flex flex-col">

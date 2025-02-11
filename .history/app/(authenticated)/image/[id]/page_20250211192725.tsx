@@ -218,20 +218,21 @@ export default function ImageDetailPage() {
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Back Button with better spacing */}
+        {/* Back Button - Always visible */}
         <Button 
           variant="link"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
           onClick={() => router.back()}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-6 lg:gap-8">
-          {/* Image Preview Section with improved card styling */}
-          <Card className="overflow-hidden bg-card border-muted shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
+          {/* Image Preview Section - Show skeleton while loading */}
+          <Card className="overflow-hidden">
             {loading ? (
+              // Skeleton for image
               <div className="aspect-square bg-muted animate-pulse flex items-center justify-center">
                 <LoadingSpinner className="h-8 w-8" />
               </div>
@@ -243,7 +244,7 @@ export default function ImageDetailPage() {
                   : "bg-muted"
               )}>
                 {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 backdrop-blur-sm z-10">
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                     <LoadingSpinner className="h-8 w-8" />
                   </div>
                 )}
@@ -251,8 +252,8 @@ export default function ImageDetailPage() {
                   src={image.image_url}
                   alt={image.prompt}
                   className={cn(
-                    "w-full h-full object-contain transition-opacity duration-200",
-                    imageLoading ? "opacity-0" : "opacity-100"
+                    "w-full h-full object-contain",
+                    imageLoading && "opacity-0"
                   )}
                   onLoad={() => setImageLoading(false)}
                   onError={(e) => {
@@ -263,6 +264,7 @@ export default function ImageDetailPage() {
                 />
               </div>
             ) : (
+              // Error state for image
               <div className="aspect-square bg-muted flex items-center justify-center">
                 <div className="text-center">
                   <ImageOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
@@ -272,25 +274,25 @@ export default function ImageDetailPage() {
             )}
           </Card>
 
-          {/* Details Section with improved spacing and organization */}
-          <div className="space-y-8">
+          {/* Details Section */}
+          <div className="space-y-6">
             {/* Prompt Section */}
             <div>
-              <h2 className="text-lg font-semibold mb-3">Prompt</h2>
+              <h2 className="text-lg font-semibold mb-2">Prompt</h2>
               {loading ? (
                 <div className="animate-pulse space-y-2">
                   <div className="h-4 bg-muted rounded w-3/4"></div>
                   <div className="h-4 bg-muted rounded w-1/2"></div>
                 </div>
               ) : image?.prompt ? (
-                <p className="text-muted-foreground leading-relaxed">{image.prompt}</p>
+                <p className="text-muted-foreground">{image.prompt}</p>
               ) : (
                 <p className="text-muted-foreground italic">No prompt available</p>
               )}
             </div>
 
-            {/* Actions with improved grid layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Actions */}
+            <div className="flex flex-col gap-3">
               <DownloadButton
                 currentImage={image?.image_url || ''}
                 isDownloading={downloading}
@@ -303,7 +305,6 @@ export default function ImageDetailPage() {
                 variant="outline"
                 onClick={handleShare}
                 disabled={sharing || loading || !image}
-                className="w-full"
               >
                 {sharing ? (
                   <>
@@ -319,10 +320,10 @@ export default function ImageDetailPage() {
               </Button>
             </div>
 
-            {/* Details with improved badge styling */}
-            <div className="space-y-6">
+            {/* Details */}
+            <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium mb-3">Details</h3>
+                <h3 className="text-sm font-medium mb-2">Details</h3>
                 {loading ? (
                   <div className="animate-pulse flex gap-2">
                     <div className="h-6 bg-muted rounded w-16"></div>
@@ -331,14 +332,13 @@ export default function ImageDetailPage() {
                 ) : image ? (
                   <div className="flex flex-wrap gap-2">
                     {image.settings.size && (
-                      <Badge variant="secondary" className="px-3 py-1">
+                      <Badge variant="secondary">
                         {image.settings.size}
                       </Badge>
                     )}
                     <Badge 
                       variant={image.format === 'SVG' ? "secondary" : "outline"}
                       className={cn(
-                        "px-3 py-1",
                         image.format === 'SVG' && "font-medium"
                       )}
                     >
@@ -352,16 +352,16 @@ export default function ImageDetailPage() {
                 {loading ? (
                   <div className="animate-pulse h-4 bg-muted rounded w-48"></div>
                 ) : image ? (
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
                     {image.generation_time && (
                       <span className="flex items-center gap-1">
                         Generated in
-                        <Badge variant="secondary" className="text-[10px] px-2">
+                        <Badge variant="secondary" className="text-[10px]">
                           {formatTime(image.generation_time)}
                         </Badge>
                       </span>
                     )}
-                    <span className="text-muted-foreground/50">•</span>
+                    <span>•</span>
                     <span>
                       {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
                     </span>

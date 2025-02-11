@@ -1,13 +1,13 @@
 // Import sections
-import RecentCreations from "@/components/homepage-sections/recent-creations"
-import Testimonials from "@/components/homepage-sections/testimonials"
-import { FaqSection } from "@/components/homepage-sections/faq-section"
+import RecentCreations from "@/components/sections/recent-creations"
+import Testimonials from "@/components/sections/testimonials"
+import { FaqSection } from "@/components/sections/faq-section"
 
-import Pricing from "@/components/homepage-sections/pricing"
-import HeroSection from "@/components/homepage-sections/hero-section"
-import StylesSection from "@/components/homepage-sections/styles-section"
-import { HowItWorksSection } from "@/components/homepage-sections/how-it-works"
-import { FeaturesSection } from "@/components/homepage-sections/features-section"
+import Pricing from "@/components/sections/pricing"
+import HeroSection from "@/components/sections/hero-section"
+import StylesSection from "@/components/sections/styles-section"
+import { HowItWorksSection } from "@/components/sections/how-it-works"
+import { FeaturesSection } from "@/components/sections/features-section"
 
 export default function Home() {
   return (

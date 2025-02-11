@@ -108,7 +108,7 @@ export default async function RootLayout({
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          
           
           
         ><NextTopLoader color="#D63418FF" showSpinner={false} />

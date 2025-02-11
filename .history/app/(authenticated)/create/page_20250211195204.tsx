@@ -295,7 +295,7 @@ export default function CreatePage() {
           formatTime={formatTime}
         />
       </div>
-<div className="flex justify-end mt-4">
+<div className="flex justify-center">
       <DownloadButton
         currentImage={currentImage}
         isDownloading={isDownloading}

@@ -102,15 +102,15 @@ export default async function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
-        <meta name="description" content="AI Illustration Art Creation Platform" />
+        <meta name="description" content="AI Image Generation Platform" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          
-          
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         ><NextTopLoader color="#D63418FF" showSpinner={false} />
           
           <main className="min-h-screen flex flex-col">

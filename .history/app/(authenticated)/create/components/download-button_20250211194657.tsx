@@ -27,7 +27,7 @@ export function DownloadButton({
   onDownload
 }: DownloadButtonProps) {
   return (
-    <div className="flex  ">
+    <div className="flex justify-end ">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
