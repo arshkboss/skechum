@@ -14,6 +14,8 @@ import { GenerationStatus, GeneratedImage, StyleOption, STYLE_OPTIONS } from "./
 import { StyleSelector } from "./components/style-selector"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { useRouter } from "next/navigation"
+import { fal } from "@fal-ai/client"
+import { FalQueueResponse } from "./types"
 
 // Define types
 interface FalImage {
@@ -45,6 +47,53 @@ export default function CreatePage() {
   const [originalFormat, setOriginalFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [requestId, setRequestId] = useState<string | null>(null)
+  const [queueCheckInterval, setQueueCheckInterval] = useState<NodeJS.Timeout | null>(null)
+
+  const checkQueueStatus = async (reqId: string) => {
+    try {
+      const status = await fal.queue.status("fal-ai/recraft-20b", {
+        requestId: reqId,
+        logs: true,
+      }) as FalQueueResponse
+
+      // Map FAL status to our application status
+      if (status.status === 'IN_PROGRESS') {
+        setStatus('generating')
+      } else if (status.status === 'IN_QUEUE') {
+        setStatus('queued')
+      } else if (status.status === 'COMPLETED') {
+        // Get the result
+        const result = await fal.queue.result("fal-ai/recraft-20b", {
+          requestId: reqId
+        })
+
+        if (result.data?.images?.[0]?.url) {
+          setCurrentImage(result.data.images[0].url)
+          setStatus('completed')
+          if (queueCheckInterval) {
+            clearInterval(queueCheckInterval)
+            setQueueCheckInterval(null)
+          }
+        } else {
+          throw new Error('No image in result')
+        }
+      } else if (status.status === 'FAILED') {
+        throw new Error('Generation failed')
+      }
+      // If still processing, continue checking
+    } catch (error) {
+      console.error('Queue status check error:', error)
+      setStatus('failed')
+      setImageLoading(false)
+      stopTimer()
+      if (queueCheckInterval) {
+        clearInterval(queueCheckInterval)
+        setQueueCheckInterval(null)
+      }
+      toast.error("Failed to generate image. Please try again.")
+    }
+  }
 
   const handleGenerate = async () => {
     if (!prompt || isProcessing) {
@@ -81,7 +130,7 @@ export default function CreatePage() {
         )
       }
 
-      // Continue with existing generation logic
+      // Submit to queue
       setStatus('queued')
       setCurrentImage("")
       setGenerationTime(null)
@@ -90,27 +139,19 @@ export default function CreatePage() {
       setElapsedTime(0)
       startTimer()
       setSavedImages(new Set())
-      
-      const response = await fetch('/api/test-recraft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+
+      const { request_id } = await fal.queue.submit("fal-ai/recraft-20b", {
+        input: {
           prompt,
           style: selectedStyle
-        })
+        }
       })
 
-      if (!response.ok) throw new Error('Generation failed')
+      setRequestId(request_id)
 
-      const result = await response.json()
-
-      if (result.data?.images?.[0]?.url) {
-        const imageUrl = result.data.images[0].url
-        setCurrentImage(imageUrl)
-        // Don't set generation time here, wait for image load
-      } else {
-        throw new Error('No image generated')
-      }
+      // Start checking queue status
+      const interval = setInterval(() => checkQueueStatus(request_id), 1000)
+      setQueueCheckInterval(interval)
 
     } catch (error) {
       console.error('Generation error:', error)
@@ -227,11 +268,14 @@ export default function CreatePage() {
 
   useEffect(() => {
     return () => {
+      if (queueCheckInterval) {
+        clearInterval(queueCheckInterval)
+      }
       if (timerIntervalRef.current !== null) {
         clearInterval(timerIntervalRef.current)
       }
     }
-  }, [])
+  }, [queueCheckInterval])
 
   const isValidPrompt = (text: string) => text.trim().length >= 3
 
