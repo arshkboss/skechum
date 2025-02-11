@@ -6,16 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
-import { Share, ChevronLeft, ImageOff } from "lucide-react"
+import { Download, Share, ChevronLeft, ImageOff } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
-import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
 import { createClient } from "@/utils/supabase/client"
+import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
+import { ImagePreview } from "@/app/(authenticated)/create/components/image-preview"
+import { checkAuth } from "@/utils/auth-check"
 
 interface ImageDetail {
   id: string
@@ -237,32 +241,16 @@ export default function ImageDetailPage() {
                 <LoadingSpinner className="h-8 w-8" />
               </div>
             ) : image ? (
-              <div className={cn(
-                "aspect-square relative",
-                image.format === 'SVG' 
-                  ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
-                  : "bg-muted"
-              )}>
-                {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
-                    <LoadingSpinner className="h-8 w-8" />
-                  </div>
-                )}
-                <img
-                  src={image.image_url}
-                  alt={image.prompt}
-                  className={cn(
-                    "w-full h-full object-contain",
-                    imageLoading && "opacity-0"
-                  )}
-                  onLoad={() => setImageLoading(false)}
-                  onError={(e) => {
-                    setImageLoading(false)
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
-                  }}
-                />
-              </div>
+              <ImagePreview
+                status="completed"
+                currentImage={image.image_url}
+                prompt={image.prompt}
+                imageLoading={imageLoading}
+                elapsedTime={elapsedTime}
+                generationTime={image.generation_time}
+                onImageLoad={() => setImageLoading(false)}
+                formatTime={formatTime}
+              />
             ) : (
               // Error state for image
               <div className="aspect-square bg-muted flex items-center justify-center">
@@ -274,7 +262,7 @@ export default function ImageDetailPage() {
             )}
           </Card>
 
-          {/* Details Section */}
+          {/* Details Section - Always render with skeleton states */}
           <div className="space-y-6">
             {/* Prompt Section */}
             <div>
@@ -292,7 +280,7 @@ export default function ImageDetailPage() {
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex gap-3">
               <DownloadButton
                 currentImage={image?.image_url || ''}
                 isDownloading={downloading}
@@ -303,6 +291,7 @@ export default function ImageDetailPage() {
 
               <Button 
                 variant="outline"
+                className="flex-1"
                 onClick={handleShare}
                 disabled={sharing || loading || !image}
               >

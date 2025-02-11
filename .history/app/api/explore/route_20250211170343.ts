@@ -65,28 +65,20 @@ export async function GET(request: Request) {
     // Calculate if there are more images
     const hasMore = count ? offset + limit < count : false
 
-    // Add strong caching headers for images
-    const headers = new Headers({
-      'Cache-Control': 'public, max-age=31536000, immutable',
-      'Content-Type': 'application/json',
-      // Add Surrogate-Control for CDN caching
-      'Surrogate-Control': 'public, max-age=31536000',
-      // Add Vary header to properly cache different versions
-      'Vary': 'Accept-Encoding',
-      // Add stale-while-revalidate for smoother updates
-      'stale-while-revalidate': '86400'
-    })
+    // Cache successful responses
+    const cacheTime = process.env.NODE_ENV === 'development' ? 60 : 3600
 
     return NextResponse.json(
       { 
-        images: data?.map(img => ({
-          ...img,
-          image_url: img.image_url + '?cache=' + new Date(img.created_at).getTime() // Add cache buster based on creation date
-        })) || [],
+        images: data || [],
         hasMore,
         total: count
       },
-      { headers }
+      {
+        headers: {
+          'Cache-Control': `public, s-maxage=${cacheTime}, stale-while-revalidate`,
+        },
+      }
     )
 
   } catch (error) {

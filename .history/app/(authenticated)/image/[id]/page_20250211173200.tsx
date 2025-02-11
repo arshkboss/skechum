@@ -15,7 +15,7 @@ import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
 import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
-import { createClient } from "@/utils/supabase/client"
+import { checkAuth } from "@/utils/auth-check"
 
 interface ImageDetail {
   id: string
@@ -31,12 +31,6 @@ interface ImageDetail {
   }
   generation_time: number
   created_at: string
-}
-
-async function checkAuth() {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return !!session
 }
 
 export default function ImageDetailPage() {

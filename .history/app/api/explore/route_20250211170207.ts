@@ -12,10 +12,11 @@ export async function GET(request: Request) {
     const category = searchParams.get('category')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '8')
-
-    // Calculate offset for pagination
     const offset = (page - 1) * limit
 
+    // Add cursor-based pagination
+    const lastId = searchParams.get('lastId')
+    
     // Build base query to select public images
     let query = supabase
       .from('user_images')
@@ -49,10 +50,15 @@ export async function GET(request: Request) {
       }
     }
 
+    // Use cursor-based pagination if lastId is provided
+    if (lastId) {
+      query = query.lt('id', lastId)
+    }
+
     // Add pagination and ordering
     query = query
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .limit(limit)
 
     // Execute the query
     const { data, error, count } = await query
@@ -64,29 +70,23 @@ export async function GET(request: Request) {
 
     // Calculate if there are more images
     const hasMore = count ? offset + limit < count : false
+    const lastImageId = data?.[data.length - 1]?.id
 
-    // Add strong caching headers for images
-    const headers = new Headers({
-      'Cache-Control': 'public, max-age=31536000, immutable',
-      'Content-Type': 'application/json',
-      // Add Surrogate-Control for CDN caching
-      'Surrogate-Control': 'public, max-age=31536000',
-      // Add Vary header to properly cache different versions
-      'Vary': 'Accept-Encoding',
-      // Add stale-while-revalidate for smoother updates
-      'stale-while-revalidate': '86400'
-    })
+    // Cache successful responses
+    const cacheTime = process.env.NODE_ENV === 'development' ? 60 : 3600
 
     return NextResponse.json(
       { 
-        images: data?.map(img => ({
-          ...img,
-          image_url: img.image_url + '?cache=' + new Date(img.created_at).getTime() // Add cache buster based on creation date
-        })) || [],
+        images: data || [],
         hasMore,
-        total: count
+        total: count,
+        lastId: lastImageId
       },
-      { headers }
+      {
+        headers: {
+          'Cache-Control': `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime / 2}`,
+        },
+      }
     )
 
   } catch (error) {

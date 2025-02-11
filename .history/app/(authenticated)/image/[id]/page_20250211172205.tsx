@@ -1,20 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
-import { Share, ChevronLeft, ImageOff } from "lucide-react"
+import { Download, Share, ChevronLeft, ImageOff } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
-import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 
 interface ImageDetail {
@@ -43,45 +45,35 @@ export default function ImageDetailPage() {
   const params = useParams()
   const [image, setImage] = useState<ImageDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [imageLoading, setImageLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
-  const [elapsedTime, setElapsedTime] = useState(0)
   const { toast } = useToast()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [imageLoading, setImageLoading] = useState(true)
 
-  // Fetch image data immediately
   useEffect(() => {
-    let mounted = true
-
     async function fetchImage() {
       try {
         const response = await fetch(`/api/images/${params.id}`)
         if (!response.ok) throw new Error('Image not found')
         const data = await response.json()
-        if (mounted) {
-          setImage(data)
-          setLoading(false)
-        }
+        setImage(data)
       } catch (error) {
         console.error('Error fetching image:', error)
-        if (mounted) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to load image",
-          })
-          setLoading(false)
-        }
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load image",
+        })
+      } finally {
+        setLoading(false)
       }
     }
 
     if (params.id) {
       fetchImage()
     }
-
-    return () => { mounted = false }
   }, [params.id, toast])
 
   useEffect(() => {
@@ -211,8 +203,23 @@ export default function ImageDetailPage() {
     }
   }
 
-  const formatTime = (ms: number) => {
-    return `${(ms / 1000).toFixed(1)}s`
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  if (!image) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Image Not Found</h1>
+        <Link href="/profile" className="text-primary hover:underline">
+          Return
+        </Link>
+      </div>
+    )
   }
 
   return (
@@ -228,109 +235,160 @@ export default function ImageDetailPage() {
           Back
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
-          {/* Image Preview Section - Show skeleton while loading */}
-          <Card className="overflow-hidden">
-            {loading ? (
-              // Skeleton for image
-              <div className="aspect-square bg-muted animate-pulse flex items-center justify-center">
-                <LoadingSpinner className="h-8 w-8" />
-              </div>
-            ) : image ? (
+        {loading ? (
+          // Show minimal loading state for initial data fetch
+          <div className="h-20 flex items-center justify-center">
+            <LoadingSpinner className="h-8 w-8" />
+          </div>
+        ) : !image ? (
+          // Show not found state
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <h1 className="text-2xl font-bold mb-4">Image Not Found</h1>
+            <Link href="/profile" className="text-primary hover:underline">
+              Return to Profile
+            </Link>
+          </div>
+        ) : (
+          // Main content
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
+            {/* Image Display with its own loading state */}
+            <Card className="overflow-hidden">
               <div className={cn(
                 "aspect-square relative",
                 image.format === 'SVG' 
                   ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
                   : "bg-muted"
               )}>
+                {/* Show loading spinner while image loads */}
                 {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
                     <LoadingSpinner className="h-8 w-8" />
                   </div>
                 )}
-                <img
-                  src={image.image_url}
-                  alt={image.prompt}
-                  className={cn(
-                    "w-full h-full object-contain",
-                    imageLoading && "opacity-0"
-                  )}
-                  onLoad={() => setImageLoading(false)}
-                  onError={(e) => {
-                    setImageLoading(false)
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
-                  }}
-                />
-              </div>
-            ) : (
-              // Error state for image
-              <div className="aspect-square bg-muted flex items-center justify-center">
-                <div className="text-center">
-                  <ImageOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">Image not found</p>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* Details Section */}
-          <div className="space-y-6">
-            {/* Prompt Section */}
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Prompt</h2>
-              {loading ? (
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
-              ) : image?.prompt ? (
-                <p className="text-muted-foreground">{image.prompt}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No prompt available</p>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <DownloadButton
-                currentImage={image?.image_url || ''}
-                isDownloading={downloading}
-                imageLoading={imageLoading || loading}
-                originalFormat={image?.format || 'PNG'}
-                onDownload={handleDownload}
-              />
-
-              <Button 
-                variant="outline"
-                onClick={handleShare}
-                disabled={sharing || loading || !image}
-              >
-                {sharing ? (
-                  <>
-                    <LoadingSpinner className="mr-2 h-4 w-4" />
-                    Copying...
-                  </>
+                
+                {image.format === 'SVG' ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={image.image_url}
+                    alt={image.prompt}
+                    className={cn(
+                      "w-full h-full object-contain pointer-events-none",
+                      imageLoading && "opacity-0" // Hide image while loading
+                    )}
+                    loading="eager"
+                    onLoad={() => setImageLoading(false)} // Set loading false when image loads
+                    onError={(e) => {
+                      setImageLoading(false)
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
                 ) : (
-                  <>
-                    <Share className="mr-2 h-4 w-4" />
-                    Copy Link
-                  </>
+                  <Image
+                    src={image.image_url}
+                    alt={image.prompt}
+                    fill
+                    className={cn(
+                      "object-cover pointer-events-none",
+                      imageLoading && "opacity-0" // Hide image while loading
+                    )}
+                    onLoadingComplete={() => setImageLoading(false)} // Set loading false when image loads
+                    onError={(e) => {
+                      setImageLoading(false)
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
                 )}
-              </Button>
-            </div>
-
-            {/* Details */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Details</h3>
-                {loading ? (
-                  <div className="animate-pulse flex gap-2">
-                    <div className="h-6 bg-muted rounded w-16"></div>
-                    <div className="h-6 bg-muted rounded w-16"></div>
+                {/* Fallback for failed images */}
+                <div className="fallback hidden absolute inset-0 items-center justify-center p-6">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                    <div className="rounded-full bg-muted-foreground/10 p-4 mb-4">
+                      <ImageOff className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="font-medium text-muted-foreground">Image Unavailable</p>
+                    <p className="text-sm text-muted-foreground/75 mt-1 max-w-[200px]">
+                      This image could not be loaded
+                    </p>
                   </div>
-                ) : image ? (
+                </div>
+              </div>
+            </Card>
+
+            {/* Image Details - Always visible once data is loaded */}
+            <div className="space-y-6">
+              {/* Prompt */}
+              {image.prompt && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">Prompt</h2>
+                  <p className="text-muted-foreground">{image.prompt}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      className="flex-1"
+                      disabled={downloading}
+                    >
+                      {downloading ? (
+                        <>
+                          <LoadingSpinner className="mr-2 h-4 w-4" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-4 w-4" />
+                          Download As
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[180px]">
+                    <DropdownMenuItem onClick={() => handleDownload('PNG')}>
+                      PNG Image
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDownload('JPG')}>
+                      JPG Image
+                    </DropdownMenuItem>
+                    {image.format === 'SVG' && (
+                      <DropdownMenuItem onClick={() => handleDownload('SVG')}>
+                        SVG Vector
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button 
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleShare}
+                  disabled={sharing}
+                >
+                  {sharing ? (
+                    <>
+                      <LoadingSpinner className="mr-2 h-4 w-4" />
+                      Copying...
+                    </>
+                  ) : (
+                    <>
+                      <Share className="mr-2 h-4 w-4" />
+                      Copy Link
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Details</h3>
                   <div className="flex flex-wrap gap-2">
+                    
                     {image.settings.size && (
                       <Badge variant="secondary">
                         {image.settings.size}
@@ -345,19 +403,15 @@ export default function ImageDetailPage() {
                       {image.format}
                     </Badge>
                   </div>
-                ) : null}
-              </div>
+                </div>
 
-              <div className="text-sm text-muted-foreground">
-                {loading ? (
-                  <div className="animate-pulse h-4 bg-muted rounded w-48"></div>
-                ) : image ? (
+                <div className="text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     {image.generation_time && (
                       <span className="flex items-center gap-1">
                         Generated in
                         <Badge variant="secondary" className="text-[10px]">
-                          {formatTime(image.generation_time)}
+                          {(image.generation_time / 1000).toFixed(1)}s
                         </Badge>
                       </span>
                     )}
@@ -366,11 +420,11 @@ export default function ImageDetailPage() {
                       {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
                     </span>
                   </div>
-                ) : null}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

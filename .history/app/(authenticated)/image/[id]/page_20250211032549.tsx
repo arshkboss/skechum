@@ -1,20 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
-import { Share, ChevronLeft, ImageOff } from "lucide-react"
+import { Download, Share, ChevronLeft, ImageOff } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
-import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 
 interface ImageDetail {
@@ -43,45 +45,34 @@ export default function ImageDetailPage() {
   const params = useParams()
   const [image, setImage] = useState<ImageDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [imageLoading, setImageLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
-  const [elapsedTime, setElapsedTime] = useState(0)
   const { toast } = useToast()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
-  // Fetch image data immediately
   useEffect(() => {
-    let mounted = true
-
     async function fetchImage() {
       try {
         const response = await fetch(`/api/images/${params.id}`)
         if (!response.ok) throw new Error('Image not found')
         const data = await response.json()
-        if (mounted) {
-          setImage(data)
-          setLoading(false)
-        }
+        setImage(data)
       } catch (error) {
         console.error('Error fetching image:', error)
-        if (mounted) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to load image",
-          })
-          setLoading(false)
-        }
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load image",
+        })
+      } finally {
+        setLoading(false)
       }
     }
 
     if (params.id) {
       fetchImage()
     }
-
-    return () => { mounted = false }
   }, [params.id, toast])
 
   useEffect(() => {
@@ -211,14 +202,29 @@ export default function ImageDetailPage() {
     }
   }
 
-  const formatTime = (ms: number) => {
-    return `${(ms / 1000).toFixed(1)}s`
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  if (!image) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Image Not Found</h1>
+        <Link href="/profile" className="text-primary hover:underline">
+          Return to Profile
+        </Link>
+      </div>
+    )
   }
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Back Button - Always visible */}
+        {/* Back Button */}
         <Button 
           variant="link"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -228,83 +234,107 @@ export default function ImageDetailPage() {
           Back
         </Button>
 
+
         <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
-          {/* Image Preview Section - Show skeleton while loading */}
+          {/* Image Display */}
           <Card className="overflow-hidden">
-            {loading ? (
-              // Skeleton for image
-              <div className="aspect-square bg-muted animate-pulse flex items-center justify-center">
-                <LoadingSpinner className="h-8 w-8" />
-              </div>
-            ) : image ? (
-              <div className={cn(
-                "aspect-square relative",
-                image.format === 'SVG' 
-                  ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
-                  : "bg-muted"
-              )}>
-                {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
-                    <LoadingSpinner className="h-8 w-8" />
-                  </div>
-                )}
+            <div className={cn(
+              "aspect-square relative",
+              image.format === 'SVG' 
+                ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
+                : "bg-muted"
+            )}>
+              {image.format === 'SVG' ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={image.image_url}
                   alt={image.prompt}
-                  className={cn(
-                    "w-full h-full object-contain",
-                    imageLoading && "opacity-0"
-                  )}
-                  onLoad={() => setImageLoading(false)}
+                  className="w-full h-full object-contain pointer-events-none"
+                  loading="eager"
+                  onContextMenu={(e) => e.preventDefault()}
                   onError={(e) => {
-                    setImageLoading(false)
                     e.currentTarget.style.display = 'none'
                     e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
                   }}
                 />
-              </div>
-            ) : (
-              // Error state for image
-              <div className="aspect-square bg-muted flex items-center justify-center">
-                <div className="text-center">
-                  <ImageOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">Image not found</p>
+              ) : (
+                <Image
+                  src={image.image_url}
+                  alt={image.prompt}
+                  fill
+                  className="object-cover pointer-events-none"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
+                  }}
+                />
+              )}
+              <div className="fallback hidden absolute inset-0 items-center justify-center p-6">
+                <div className="w-full h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                  <div className="rounded-full bg-muted-foreground/10 p-4 mb-4">
+                    <ImageOff className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-muted-foreground">Image Unavailable</p>
+                  <p className="text-sm text-muted-foreground/75 mt-1 max-w-[200px]">
+                    This image could not be loaded
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
           </Card>
 
-          {/* Details Section */}
+          {/* Image Details */}
           <div className="space-y-6">
-            {/* Prompt Section */}
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Prompt</h2>
-              {loading ? (
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
-              ) : image?.prompt ? (
+            {/* Prompt */}
+            {image.prompt && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Prompt</h2>
                 <p className="text-muted-foreground">{image.prompt}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No prompt available</p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <DownloadButton
-                currentImage={image?.image_url || ''}
-                isDownloading={downloading}
-                imageLoading={imageLoading || loading}
-                originalFormat={image?.format || 'PNG'}
-                onDownload={handleDownload}
-              />
+            <div className="flex gap-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    className="flex-1"
+                    disabled={downloading}
+                  >
+                    {downloading ? (
+                      <>
+                        <LoadingSpinner className="mr-2 h-4 w-4" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download As
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[180px]">
+                  <DropdownMenuItem onClick={() => handleDownload('PNG')}>
+                    PNG Image
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownload('JPG')}>
+                    JPG Image
+                  </DropdownMenuItem>
+                  {image.format === 'SVG' && (
+                    <DropdownMenuItem onClick={() => handleDownload('SVG')}>
+                      SVG Vector
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button 
                 variant="outline"
+                className="flex-1"
                 onClick={handleShare}
-                disabled={sharing || loading || !image}
+                disabled={sharing}
               >
                 {sharing ? (
                   <>
@@ -324,49 +354,39 @@ export default function ImageDetailPage() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium mb-2">Details</h3>
-                {loading ? (
-                  <div className="animate-pulse flex gap-2">
-                    <div className="h-6 bg-muted rounded w-16"></div>
-                    <div className="h-6 bg-muted rounded w-16"></div>
-                  </div>
-                ) : image ? (
-                  <div className="flex flex-wrap gap-2">
-                    {image.settings.size && (
-                      <Badge variant="secondary">
-                        {image.settings.size}
-                      </Badge>
-                    )}
-                    <Badge 
-                      variant={image.format === 'SVG' ? "secondary" : "outline"}
-                      className={cn(
-                        image.format === 'SVG' && "font-medium"
-                      )}
-                    >
-                      {image.format}
+                <div className="flex flex-wrap gap-2">
+                  
+                  {image.settings.size && (
+                    <Badge variant="secondary">
+                      {image.settings.size}
                     </Badge>
-                  </div>
-                ) : null}
+                  )}
+                  <Badge 
+                    variant={image.format === 'SVG' ? "secondary" : "outline"}
+                    className={cn(
+                      image.format === 'SVG' && "font-medium"
+                    )}
+                  >
+                    {image.format}
+                  </Badge>
+                </div>
               </div>
 
               <div className="text-sm text-muted-foreground">
-                {loading ? (
-                  <div className="animate-pulse h-4 bg-muted rounded w-48"></div>
-                ) : image ? (
-                  <div className="flex items-center gap-2">
-                    {image.generation_time && (
-                      <span className="flex items-center gap-1">
-                        Generated in
-                        <Badge variant="secondary" className="text-[10px]">
-                          {formatTime(image.generation_time)}
-                        </Badge>
-                      </span>
-                    )}
-                    <span>•</span>
-                    <span>
-                      {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
+                <div className="flex items-center gap-2">
+                  {image.generation_time && (
+                    <span className="flex items-center gap-1">
+                      Generated in
+                      <Badge variant="secondary" className="text-[10px]">
+                        {(image.generation_time / 1000).toFixed(1)}s
+                      </Badge>
                     </span>
-                  </div>
-                ) : null}
+                  )}
+                  <span>•</span>
+                  <span>
+                    {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

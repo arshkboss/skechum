@@ -6,16 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Button } from "@/components/ui/button"
-import { Share, ChevronLeft, ImageOff } from "lucide-react"
+import { Download, Share, ChevronLeft, ImageOff } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
 import { createSecureImageUrl } from "@/services/images"
 import NProgress from "nprogress"
 import { useToast } from "@/hooks/use-toast"
-import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
 import { createClient } from "@/utils/supabase/client"
+import { DownloadButton } from "@/app/(authenticated)/create/components/download-button"
+import { ImagePreview } from "@/app/(authenticated)/create/components/image-preview"
+import { checkAuth } from "@/utils/auth"
 
 interface ImageDetail {
   id: string
@@ -215,10 +219,32 @@ export default function ImageDetailPage() {
     return `${(ms / 1000).toFixed(1)}s`
   }
 
+  // Early return for not found state
+  if (!loading && !image) {
+    return (
+      <div className="container mx-auto p-4 md:p-8">
+        <Button 
+          variant="link"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back
+        </Button>
+        
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <h1 className="text-2xl font-bold mb-4">Image Not Found</h1>
+          <Link href="/profile" className="text-primary hover:underline">
+            Return to Profile
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Back Button - Always visible */}
         <Button 
           variant="link"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -229,146 +255,112 @@ export default function ImageDetailPage() {
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-8">
-          {/* Image Preview Section - Show skeleton while loading */}
-          <Card className="overflow-hidden">
-            {loading ? (
-              // Skeleton for image
-              <div className="aspect-square bg-muted animate-pulse flex items-center justify-center">
-                <LoadingSpinner className="h-8 w-8" />
-              </div>
-            ) : image ? (
-              <div className={cn(
-                "aspect-square relative",
-                image.format === 'SVG' 
-                  ? "bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-slate-100 to-slate-200 bg-grid-small p-4" 
-                  : "bg-muted"
-              )}>
-                {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
-                    <LoadingSpinner className="h-8 w-8" />
+          {/* Image Preview Section */}
+          {image && (
+            <ImagePreview
+              status={loading ? 'generating' : 'completed'}
+              currentImage={image.image_url}
+              prompt={image.prompt}
+              imageLoading={imageLoading}
+              elapsedTime={elapsedTime}
+              generationTime={image.generation_time}
+              onImageLoad={() => setImageLoading(false)}
+              formatTime={formatTime}
+            />
+          )}
+
+          {/* Details Section - Show immediately with skeleton if needed */}
+          <div className="space-y-6">
+            {image ? (
+              <>
+                {/* Prompt */}
+                {image.prompt && (
+                  <div>
+                    <h2 className="text-lg font-semibold mb-2">Prompt</h2>
+                    <p className="text-muted-foreground">{image.prompt}</p>
                   </div>
                 )}
-                <img
-                  src={image.image_url}
-                  alt={image.prompt}
-                  className={cn(
-                    "w-full h-full object-contain",
-                    imageLoading && "opacity-0"
-                  )}
-                  onLoad={() => setImageLoading(false)}
-                  onError={(e) => {
-                    setImageLoading(false)
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.parentElement?.querySelector('.fallback')?.classList.remove('hidden')
-                  }}
-                />
-              </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <DownloadButton
+                    currentImage={image.image_url}
+                    isDownloading={downloading}
+                    imageLoading={imageLoading}
+                    originalFormat={image.format}
+                    onDownload={handleDownload}
+                  />
+
+                  <Button 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleShare}
+                    disabled={sharing}
+                  >
+                    {sharing ? (
+                      <>
+                        <LoadingSpinner className="mr-2 h-4 w-4" />
+                        Copying...
+                      </>
+                    ) : (
+                      <>
+                        <Share className="mr-2 h-4 w-4" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Details</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {image.settings.size && (
+                        <Badge variant="secondary">
+                          {image.settings.size}
+                        </Badge>
+                      )}
+                      <Badge 
+                        variant={image.format === 'SVG' ? "secondary" : "outline"}
+                        className={cn(
+                          image.format === 'SVG' && "font-medium"
+                        )}
+                      >
+                        {image.format}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      {image.generation_time && (
+                        <span className="flex items-center gap-1">
+                          Generated in
+                          <Badge variant="secondary" className="text-[10px]">
+                            {formatTime(image.generation_time)}
+                          </Badge>
+                        </span>
+                      )}
+                      <span>•</span>
+                      <span>
+                        {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
-              // Error state for image
-              <div className="aspect-square bg-muted flex items-center justify-center">
-                <div className="text-center">
-                  <ImageOff className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">Image not found</p>
+              // Skeleton loading state for details
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+                <div className="h-20 bg-muted rounded"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-1/4"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
                 </div>
               </div>
             )}
-          </Card>
-
-          {/* Details Section */}
-          <div className="space-y-6">
-            {/* Prompt Section */}
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Prompt</h2>
-              {loading ? (
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
-              ) : image?.prompt ? (
-                <p className="text-muted-foreground">{image.prompt}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No prompt available</p>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <DownloadButton
-                currentImage={image?.image_url || ''}
-                isDownloading={downloading}
-                imageLoading={imageLoading || loading}
-                originalFormat={image?.format || 'PNG'}
-                onDownload={handleDownload}
-              />
-
-              <Button 
-                variant="outline"
-                onClick={handleShare}
-                disabled={sharing || loading || !image}
-              >
-                {sharing ? (
-                  <>
-                    <LoadingSpinner className="mr-2 h-4 w-4" />
-                    Copying...
-                  </>
-                ) : (
-                  <>
-                    <Share className="mr-2 h-4 w-4" />
-                    Copy Link
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Details */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Details</h3>
-                {loading ? (
-                  <div className="animate-pulse flex gap-2">
-                    <div className="h-6 bg-muted rounded w-16"></div>
-                    <div className="h-6 bg-muted rounded w-16"></div>
-                  </div>
-                ) : image ? (
-                  <div className="flex flex-wrap gap-2">
-                    {image.settings.size && (
-                      <Badge variant="secondary">
-                        {image.settings.size}
-                      </Badge>
-                    )}
-                    <Badge 
-                      variant={image.format === 'SVG' ? "secondary" : "outline"}
-                      className={cn(
-                        image.format === 'SVG' && "font-medium"
-                      )}
-                    >
-                      {image.format}
-                    </Badge>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                {loading ? (
-                  <div className="animate-pulse h-4 bg-muted rounded w-48"></div>
-                ) : image ? (
-                  <div className="flex items-center gap-2">
-                    {image.generation_time && (
-                      <span className="flex items-center gap-1">
-                        Generated in
-                        <Badge variant="secondary" className="text-[10px]">
-                          {formatTime(image.generation_time)}
-                        </Badge>
-                      </span>
-                    )}
-                    <span>•</span>
-                    <span>
-                      {formatDistanceToNow(new Date(image.created_at), { addSuffix: true })}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            </div>
           </div>
         </div>
       </div>
