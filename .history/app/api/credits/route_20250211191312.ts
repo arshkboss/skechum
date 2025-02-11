@@ -6,7 +6,7 @@ import { headers } from 'next/headers'
 export async function GET() {
   try {
     // Check if request is from our own frontend
-    const headersList = await headers()
+    const headersList = headers()
     const referer = headersList.get('referer')
     const origin = headersList.get('origin')
     
@@ -15,11 +15,11 @@ export async function GET() {
       process.env.NEXT_PUBLIC_APP_URL,
       'https://skechum.com',
       'http://localhost:3000'
-    ].filter(Boolean)
+    ]
     
     // Type safety: handle origin as string
     const refererOrigin = referer || ''
-    if (!refererOrigin || !allowedOrigins.some(allowed => allowed && refererOrigin.startsWith(allowed))) {
+    if (!refererOrigin || !allowedOrigins.some(allowed => refererOrigin.startsWith(allowed || ''))) {
       return NextResponse.json(
         { error: 'Unauthorized' }, 
         { 
