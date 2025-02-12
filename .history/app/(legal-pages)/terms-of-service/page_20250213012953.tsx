@@ -4,7 +4,7 @@ export default function TermsPage() {
       <h1 className="text-4xl font-bold">Terms and Conditions</h1>
       
       <p className="text-muted-foreground">
-        Last Updated: {new Date().toLocaleDateString()}
+        Last Updated: September 2, 2024
       </p>
 
       <p>

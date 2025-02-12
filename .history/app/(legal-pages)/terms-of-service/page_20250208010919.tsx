@@ -4,15 +4,14 @@ export default function TermsPage() {
       <h1 className="text-4xl font-bold">Terms and Conditions</h1>
       
       <p className="text-muted-foreground">
-        Last Updated: {new Date().toLocaleDateString()}
+        Last Updated: September 2, 2024
       </p>
 
       <p>
-        Welcome, and thank you for your interest in SHOPIKO ("Skechum," "we," "our," or "us"), 
-        a company registered at B-274, Indra vihar colony, airport road, bhopal, M.P. 462030 IN, 
+        Welcome, and thank you for your interest in Skechum ("Skechum," "we," or "us") 
         and our website at www.skechum.com (the "Service"). These Terms and Conditions 
         (the "Terms") are a legally binding contract between you ("User", "you", or "your") 
-        and SHOPIKO regarding your use of the Service.
+        and Skechum regarding your use of the Service.
       </p>
 
       <section className="space-y-4">
@@ -97,18 +96,11 @@ export default function TermsPage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold">Contact</h2>
         <p>
-          For any questions about these Terms, please{" "}
+          If you have any questions about these Terms, please{" "}
           <a href="/contact" className="text-primary hover:underline">
             contact us
           </a>
-          . You can also reach us at our registered address:
-        </p>
-        <p className="text-muted-foreground">
-          SHOPIKO<br />
-          B-274, Indra vihar colony<br />
-          Airport road, Bhopal<br />
-          Madhya Pradesh 462030<br />
-          India
+          .
         </p>
       </section>
     </article>
