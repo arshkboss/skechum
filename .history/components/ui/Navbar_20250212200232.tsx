@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import AuthButton from "@/components/header-auth"
-import { Wallet, Menu, X, LogOut } from "lucide-react"
+import { Wallet, Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import {
@@ -97,16 +97,16 @@ export default function Navbar({ user }: { user: any }) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 w-full mx-auto relative">
+      <div className="container flex h-14 items-center justify-between px-4 w-full mx-auto relative">
         {/* Logo/Brand */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-semibold text-lg">Skechum</span>
+            <span className="font-bold">Skechum</span>
           </Link>
         </div>
 
         {/* Desktop Navigation - Centered */}
-        <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
+        <nav className="hidden md:flex items-center space-x-6 absolute left-1/2 -translate-x-1/2">
           {routes.map((route) => (
             <Link
               key={route.href}
@@ -114,7 +114,7 @@ export default function Navbar({ user }: { user: any }) {
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
                 pathname === route.href
-                  ? "text-foreground font-semibold"
+                  ? "text-foreground"
                   : "text-foreground/60"
               )}
             >
@@ -130,7 +130,7 @@ export default function Navbar({ user }: { user: any }) {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="flex items-center gap-2 bg-background border-border hover:bg-accent/10 rounded-full px-4"
+                className="flex items-center gap-2 bg-accent/5 dark:bg-accent/50 hover:bg-accent/10 rounded-full"
               >
                 <Wallet className="h-4 w-4" />
                 <span>{credits !== null ? `${credits} credits` : '...'}</span>
@@ -143,91 +143,98 @@ export default function Navbar({ user }: { user: any }) {
         {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="h-10 w-10">
+            <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] p-0">
-            <div className="flex flex-col h-full">
+          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <div className="flex flex-col space-y-6 pt-6">
               {/* Profile Card for Mobile */}
               {user && (
-                <div className="p-6 border-b">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback>
-                        {user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-medium">
-                        {user.user_metadata?.full_name?.split(' ')[0] || user.email}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                <Card className="border rounded-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback>
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-semibold">
+                          {user.user_metadata?.full_name || user.email}
+                        </h4>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
                     </div>
-                  </div>
                     
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Link 
-                        href="/profile" 
-                        onClick={closeMenu}
-                        className="flex items-center justify-center text-sm h-9 rounded-md border bg-background hover:bg-accent/10 transition-colors"
-                      >
-                        Profile
-                      </Link>
-                      <Link href="/pricing" onClick={closeMenu}>
+                    <div className="space-y-3">
+                      <Link href="/pricing" onClick={closeMenu} className="block">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="w-full flex items-center justify-center gap-2 bg-background border-border hover:bg-accent/10 h-9"
+                          className="w-full flex items-center gap-2 bg-accent/5 dark:bg-accent/50 hover:bg-accent/10 rounded-full"
                         >
                           <Wallet className="h-4 w-4" />
-                          <span>{credits !== null ? credits : '...'}</span>
+                          <span>{credits !== null ? `${credits} credits` : '...'}</span>
                         </Button>
                       </Link>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link 
+                          href="/profile" 
+                          onClick={closeMenu}
+                          className="text-sm px-3 py-2 rounded-md hover:bg-accent text-center"
+                        >
+                          Profile
+                        </Link>
+                        <Link 
+                          href="/settings" 
+                          onClick={closeMenu}
+                          className="text-sm px-3 py-2 rounded-md hover:bg-accent text-center"
+                        >
+                          Settings
+                        </Link>
+                      </div>
+
+                      <Button 
+                        variant="ghost" 
+                        className="w-full text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                        onClick={handleSignOut}
+                      >
+                        Sign out
+                      </Button>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Navigation Links */}
-              <nav className="flex-1 p-6">
-                <div className="space-y-1">
-                  {routes.map((route) => (
-                    <Link
-                      key={route.href}
-                      href={route.href}
-                      onClick={closeMenu}
-                      className={cn(
-                        "flex items-center w-full h-10 text-sm font-medium transition-colors rounded-md px-4",
-                        pathname === route.href
-                          ? "bg-accent text-accent-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      )}
-                    >
-                      {route.label}
-                    </Link>
-                  ))}
-                </div>
+              <nav className="flex flex-col space-y-1">
+                {routes.map((route) => (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    onClick={closeMenu}
+                    className={cn(
+                      "text-sm font-medium transition-colors hover:text-primary p-3 rounded-md",
+                      pathname === route.href
+                        ? "bg-accent/50 text-foreground"
+                        : "text-foreground/60 hover:bg-accent/30"
+                    )}
+                  >
+                    {route.label}
+                  </Link>
+                ))}
               </nav>
 
-              {/* Footer Actions */}
-              <div className="mt-auto p-6 border-t">
-                {user ? (
-                  <Button 
-                    variant="ghost" 
-                    className="w-full text-sm text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 dark:hover:bg-red-950/50 h-10 flex items-center justify-center gap-2"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </Button>
-                ) : (
+              {/* Show AuthButton only for non-authenticated users */}
+              {!user && (
+                <div className="pt-4 mt-auto">
                   <AuthButton user={user} />
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </SheetContent>
         </Sheet>

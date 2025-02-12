@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import AuthButton from "@/components/header-auth"
-import { Wallet, Menu, X, LogOut } from "lucide-react"
+import { Wallet, Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import {
@@ -162,13 +162,24 @@ export default function Navbar({ user }: { user: any }) {
                     </Avatar>
                     <div className="space-y-1">
                       <h4 className="text-sm font-medium">
-                        {user.user_metadata?.full_name?.split(' ')[0] || user.email}
+                        {user.user_metadata?.full_name || user.email}
                       </h4>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                     
                   <div className="space-y-4">
+                    <Link href="/pricing" onClick={closeMenu} className="block">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full flex items-center gap-2 bg-background border-border hover:bg-accent/10 rounded-full h-9"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        <span>{credits !== null ? `${credits} credits` : '...'}</span>
+                      </Button>
+                    </Link>
+
                     <div className="grid grid-cols-2 gap-3">
                       <Link 
                         href="/profile" 
@@ -177,15 +188,12 @@ export default function Navbar({ user }: { user: any }) {
                       >
                         Profile
                       </Link>
-                      <Link href="/pricing" onClick={closeMenu}>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="w-full flex items-center justify-center gap-2 bg-background border-border hover:bg-accent/10 h-9"
-                        >
-                          <Wallet className="h-4 w-4" />
-                          <span>{credits !== null ? credits : '...'}</span>
-                        </Button>
+                      <Link 
+                        href="/settings" 
+                        onClick={closeMenu}
+                        className="flex items-center justify-center text-sm h-9 rounded-md border bg-background hover:bg-accent/10 transition-colors"
+                      >
+                        Settings
                       </Link>
                     </div>
                   </div>
@@ -218,10 +226,9 @@ export default function Navbar({ user }: { user: any }) {
                 {user ? (
                   <Button 
                     variant="ghost" 
-                    className="w-full text-sm text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 dark:hover:bg-red-950/50 h-10 flex items-center justify-center gap-2"
+                    className="w-full text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 h-10"
                     onClick={handleSignOut}
                   >
-                    <LogOut className="h-4 w-4" />
                     Sign out
                   </Button>
                 ) : (

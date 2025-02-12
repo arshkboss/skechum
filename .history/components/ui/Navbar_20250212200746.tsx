@@ -218,7 +218,7 @@ export default function Navbar({ user }: { user: any }) {
                 {user ? (
                   <Button 
                     variant="ghost" 
-                    className="w-full text-sm text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 dark:hover:bg-red-950/50 h-10 flex items-center justify-center gap-2"
+                    className="w-full text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 h-10 flex items-center justify-center gap-2"
                     onClick={handleSignOut}
                   >
                     <LogOut className="h-4 w-4" />
