@@ -16,7 +16,7 @@ export function StyleSelector({ value, onChange }: StyleSelectorProps) {
       <label className="text-sm font-medium text-muted-foreground">
         Choose Style
       </label>
-      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         {STYLE_OPTIONS.map((style) => (
           <Button
             key={style.id}

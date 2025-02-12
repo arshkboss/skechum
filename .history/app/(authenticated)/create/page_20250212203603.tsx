@@ -271,19 +271,15 @@ export default function CreatePage() {
   const isValidPrompt = (text: string) => text.trim().length >= 3
 
   return (
-    <div className="container mx-auto px-3 py-4 sm:p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr,1fr] gap-3 sm:gap-6">
-        <Card className="p-3 sm:p-6 space-y-3 sm:space-y-6">
+    <div className="container mx-auto p-4 sm:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr,1fr] gap-4 sm:gap-6">
+        <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">
-              Create Illustrations with Skechum
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Write a prompt and let the AI generate an illustration
-            </p>
+            <h2 className="text-xl font-bold">Create Illustrations with Skechum</h2>
+            <p className="text-muted-foreground">Write a prompt and let the AI generate an illustration</p>
           </div>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-4">
             <PromptInput 
               value={prompt}
               onChange={setPrompt}
@@ -315,7 +311,7 @@ export default function CreatePage() {
         </div>
       </div>
 
-      <div className="flex justify-end mt-3 sm:mt-4">
+      <div className="flex justify-end mt-4">
         <DownloadButton
           currentImage={currentImage}
           isDownloading={isDownloading}
@@ -325,9 +321,7 @@ export default function CreatePage() {
         />
       </div>
 
-      <div className="mt-6 sm:mt-8">
-        <HistorySection history={history} />
-      </div>
+      <HistorySection history={history} />
     </div>
   )
 } 

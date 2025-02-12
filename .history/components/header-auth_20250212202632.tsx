@@ -60,7 +60,7 @@ export default function AuthButton({ user }: AuthButtonProps) {
           variant="ghost" 
           className="relative h-10 w-auto gap-2 pl-2 pr-4 rounded-full hover:bg-accent group 
             border hover:border-border transition-all duration-200
-            bg-accent/5 dark:bg-accent/50 md:w-auto  justify-between"
+            bg-accent/5 dark:bg-accent/50 md:w-auto w-full justify-between"
         >
           <div className="flex items-center gap-2 w-full">
             <Avatar className="h-8 w-8 ring-2 ring-offset-2 ring-offset-background ring-border/30">

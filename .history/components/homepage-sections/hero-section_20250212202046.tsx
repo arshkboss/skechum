@@ -10,7 +10,7 @@ function HeroSection() {
     <section className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-12 md:py-24">
       <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-2xl sm:text-2xl font-bold tracking-tighter md:text-5xl lg:text-6xl py-6 md:py-12 px-2">
+          <h1 className=" sm:text-2xl font-bold tracking-tighter md:text-5xl lg:text-6xl py-6 md:py-12 px-2">
             Transform Your Ideas Into
             <span className="text-primary block sm:inline"> Beautiful Art</span>
           </h1>
