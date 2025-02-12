@@ -19,14 +19,14 @@ export const STYLE_OPTIONS = [
   {
     id: 'vector_illustration/doodle_line_art',
     name: 'Line Art',
-    description: 'Simple b&w line drawings',
+    description: 'Simple black & white line drawings with clean, minimal style',
     img: '/styles/line_art.png'
   },
   
   {
     id: 'digital_illustration/watercolor',
     name: 'Watercolor',
-    description: 'Artistic watercolor style',
+    description: 'Soft and artistic illustrations with watercolor textures',
     img: '/styles/watercolor.png'
   }
 ]
@@ -42,15 +42,15 @@ export interface StyleCreditCost {
 // Map of style IDs to their credit costs
 export const STYLE_CREDIT_COSTS: Record<string, StyleCreditCost> = {
   'vector_illustration/doodle_line_art': {
-    credits: 3,
+    credits: 2,
     description: 'Doodle Line Art Style'
   },
   'flux_lora': {
-    credits: 2,
+    credits: 1,
     description: 'Color Doodle Style'
   },
   'digital_illustration/watercolor': {
-    credits: 2,
+    credits: 1,
     description: 'Watercolor Style'
   },
   'default': {

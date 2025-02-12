@@ -79,23 +79,14 @@ export async function saveUserImage(
   }
 }
 
-export async function getUserImages(userId: string, page: number, perPage: number) {
-  const start = (page - 1) * perPage
-  const end = start + perPage - 1
-
-  const { data, error, count } = await supabase
-    .from('user_images')
-    .select('*', { count: 'exact' })
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(start, end)
-
-  if (error) {
-    console.error('Error fetching user images:', error)
-    return { data: null, error, count: 0 }
+export async function getUserImages(userId: string, page: number, limit: number) {
+  try {
+    const response = await fetch(`/api/images?userId=${userId}&page=${page}&limit=${limit}`)
+    const { data, error, total } = await response.json()
+    return { data, error, total } // Include total in the return
+  } catch (error) {
+    return { data: null, error: 'Failed to fetch images', total: 0 }
   }
-
-  return { data, error: null, count }
 }
 
 export function createSecureImageUrl(url: string): string {

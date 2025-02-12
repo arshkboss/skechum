@@ -19,14 +19,14 @@ export const STYLE_OPTIONS = [
   {
     id: 'vector_illustration/doodle_line_art',
     name: 'Line Art',
-    description: 'Simple b&w line drawings',
+    description: 'Simple b&w line drawings with clean, minimal style',
     img: '/styles/line_art.png'
   },
   
   {
     id: 'digital_illustration/watercolor',
     name: 'Watercolor',
-    description: 'Artistic watercolor style',
+    description: 'Soft and artistic illustrations with watercolor textures',
     img: '/styles/watercolor.png'
   }
 ]

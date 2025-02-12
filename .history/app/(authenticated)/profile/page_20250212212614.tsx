@@ -285,9 +285,56 @@ const ImageCard = memo(function ImageCard({
   )
 })
 
-// Move scrollToTop outside
+// Add this new function at the top level
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Modify the PaginationControls component to accept a className prop
+const PaginationControls = ({ className }: { className?: string }) => {
+  return (
+    <div className={cn("flex items-center justify-center gap-4", className)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          scrollToTop();
+          setCurrentPage(prev => {
+            const newPage = prev - 1;
+            loadImages(newPage);
+            return newPage;
+          });
+        }}
+        disabled={currentPage === 1 || loading}
+      >
+        <ChevronLeft className="h-4 w-4 mr-2" />
+        Previous
+      </Button>
+      
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </span>
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          scrollToTop();
+          setCurrentPage(prev => {
+            const newPage = prev + 1;
+            loadImages(newPage);
+            return newPage;
+          });
+        }}
+        disabled={currentPage >= totalPages || loading}
+      >
+        Next
+        <ChevronRight className="h-4 w-4 ml-2" />
+      </Button>
+    </div>
+  );
 };
 
 export default function ProfilePage() {
@@ -300,53 +347,6 @@ export default function ProfilePage() {
   const [totalPages, setTotalPages] = useState(1)
   const ITEMS_PER_PAGE = 12
   const { toast } = useToast()
-
-  // Move PaginationControls inside main component
-  const PaginationControls = ({ className }: { className?: string }) => {
-    return (
-      <div className={cn("flex items-center justify-center gap-4", className)}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev - 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage === 1 || loading}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev + 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage >= totalPages || loading}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-    );
-  };
 
   // Modify loadImages to handle pagination
   const loadImages = useCallback(async (pageNum: number) => {

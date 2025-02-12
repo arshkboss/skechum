@@ -285,11 +285,6 @@ const ImageCard = memo(function ImageCard({
   )
 })
 
-// Move scrollToTop outside
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser()
   const [images, setImages] = useState<UserImage[]>([])
@@ -300,53 +295,6 @@ export default function ProfilePage() {
   const [totalPages, setTotalPages] = useState(1)
   const ITEMS_PER_PAGE = 12
   const { toast } = useToast()
-
-  // Move PaginationControls inside main component
-  const PaginationControls = ({ className }: { className?: string }) => {
-    return (
-      <div className={cn("flex items-center justify-center gap-4", className)}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev - 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage === 1 || loading}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev + 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage >= totalPages || loading}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-    );
-  };
 
   // Modify loadImages to handle pagination
   const loadImages = useCallback(async (pageNum: number) => {
@@ -490,6 +438,51 @@ export default function ProfilePage() {
   const handleDownloadMemo = useCallback(handleDownload, [])
   const handleShareMemo = useCallback(handleShare, [])
 
+  // Add pagination controls component
+  const PaginationControls = () => {
+    return (
+      <div className="flex items-center justify-center gap-4 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setCurrentPage(prev => {
+              const newPage = prev - 1
+              loadImages(newPage)
+              return newPage
+            })
+          }}
+          disabled={currentPage === 1 || loading}
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Previous
+        </Button>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setCurrentPage(prev => {
+              const newPage = prev + 1
+              loadImages(newPage)
+              return newPage
+            })
+          }}
+          disabled={currentPage >= totalPages || loading}
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
+    )
+  }
+
   if (userLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -514,22 +507,13 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Creations</h1>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <p className="text-muted-foreground">
-              {user.email}
-            </p>
-            <Badge variant="secondary">
-              {images.length} Images
-            </Badge>
-          </div>
-          
-          {/* Top pagination - only visible on desktop */}
-          {images.length > 0 && (
-            <div className="hidden md:block">
-              <PaginationControls />
-            </div>
-          )}
+        <div className="flex items-center gap-4">
+          <p className="text-muted-foreground">
+            {user.email}
+          </p>
+          <Badge variant="secondary">
+            {images.length} Images
+          </Badge>
         </div>
       </div>
 
@@ -549,8 +533,8 @@ export default function ProfilePage() {
             ))}
           </div>
           
-          {/* Bottom pagination - always visible */}
-          <PaginationControls className="mt-8" />
+          {/* Add pagination controls */}
+          <PaginationControls />
         </>
       ) : (
         <div className="text-center py-12">

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Wallet } from "lucide-react"
 
 interface StyleSelectorProps {
   value: string
@@ -23,12 +22,8 @@ export function StyleSelector({ value, onChange }: StyleSelectorProps) {
         <label className="text-sm font-medium text-muted-foreground">
           Choose Style
         </label>
-        <Badge 
-          variant="secondary" 
-          className="h-5 bg-green-100/80 text-green-700 flex items-center gap-1 px-2"
-        >
-          <Wallet className="w-3 h-3" />
-          <span>Cost: {selectedCreditCost} {selectedCreditCost === 1 ? 'credit' : 'credits'}</span>
+        <Badge variant="secondary" className="h-5">
+          {selectedCreditCost} {selectedCreditCost === 1 ? 'credit' : 'credits'}
         </Badge>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3">
@@ -44,6 +39,13 @@ export function StyleSelector({ value, onChange }: StyleSelectorProps) {
             onClick={() => onChange(style.id)}
           >
             <div className="relative w-full aspect-[3/2] overflow-hidden">
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm"
+              >
+                {STYLE_CREDIT_COSTS[style.id]?.credits || STYLE_CREDIT_COSTS['default'].credits} 
+                <span className="ml-1">💎</span>
+              </Badge>
               <Image
                 src={style.img}
                 alt={style.name}

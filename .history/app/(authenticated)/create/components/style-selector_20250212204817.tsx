@@ -2,10 +2,8 @@
 
 import { STYLE_OPTIONS, STYLE_CREDIT_COSTS } from "../types"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Wallet } from "lucide-react"
 
 interface StyleSelectorProps {
   value: string
@@ -13,24 +11,11 @@ interface StyleSelectorProps {
 }
 
 export function StyleSelector({ value, onChange }: StyleSelectorProps) {
-  const selectedCreditCost = value ? 
-    (STYLE_CREDIT_COSTS[value]?.credits || STYLE_CREDIT_COSTS['default'].credits) 
-    : STYLE_CREDIT_COSTS['default'].credits
-
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-muted-foreground">
-          Choose Style
-        </label>
-        <Badge 
-          variant="secondary" 
-          className="h-5 bg-green-100/80 text-green-700 flex items-center gap-1 px-2"
-        >
-          <Wallet className="w-3 h-3" />
-          <span>Cost: {selectedCreditCost} {selectedCreditCost === 1 ? 'credit' : 'credits'}</span>
-        </Badge>
-      </div>
+      <label className="text-sm font-medium text-muted-foreground">
+        Choose Style
+      </label>
       <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3">
         {STYLE_OPTIONS.map((style) => (
           <Button

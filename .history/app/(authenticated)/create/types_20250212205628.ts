@@ -26,7 +26,7 @@ export const STYLE_OPTIONS = [
   {
     id: 'digital_illustration/watercolor',
     name: 'Watercolor',
-    description: 'Artistic watercolor style',
+    description: 'Illustration with watercolor textures',
     img: '/styles/watercolor.png'
   }
 ]

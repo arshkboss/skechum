@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useEffect, useCallback, memo, useRef } from "react"
 import { useUser } from "@/hooks/use-user"
 import { getUserImages, createSecureImageUrl } from "@/services/images"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Image from "next/image"
-import { Download, ExternalLink, ImageOff, ChevronLeft, ChevronRight } from "lucide-react"
+import { Download, ExternalLink, ImageOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { useInView } from "react-intersection-observer"
 import { motion } from "framer-motion"
 import NProgress from "nprogress"
 import { detectImageFormat, convertImage } from '@/utils/image-utils'
@@ -285,104 +286,100 @@ const ImageCard = memo(function ImageCard({
   )
 })
 
-// Move scrollToTop outside
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser()
   const [images, setImages] = useState<UserImage[]>([])
   const [loading, setLoading] = useState(true)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [sharingId, setSharingId] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const { ref, inView } = useInView()
   const ITEMS_PER_PAGE = 12
+  const [downloadFormat, setDownloadFormat] = useState<'PNG' | 'SVG' | 'JPG'>('PNG')
   const { toast } = useToast()
+  const [totalImages, setTotalImages] = useState<number>(0)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  // Move PaginationControls inside main component
-  const PaginationControls = ({ className }: { className?: string }) => {
-    return (
-      <div className={cn("flex items-center justify-center gap-4", className)}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev - 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage === 1 || loading}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
+  // Add a loading ref to prevent duplicate requests
+  const loadingRef = useRef(false)
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev + 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage >= totalPages || loading}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-    );
-  };
-
-  // Modify loadImages to handle pagination
+  // Optimize image state management
   const loadImages = useCallback(async (pageNum: number) => {
-    if (user?.id) {
-      NProgress.start()
-      setLoading(true)
+    // Prevent duplicate requests
+    if (loadingRef.current || !user?.id) return
+    
+    try {
+      loadingRef.current = true
+      setIsLoadingMore(true)
       
-      try {
-        const { data, error, count } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)
-        if (error) throw error
-        
-        if (data) {
-          setImages(data)
-          // Calculate total pages based on count from backend
-          setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
-        }
-      } catch (error) {
-        console.error('Error loading images:', error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load images"
-        })
-      } finally {
-        NProgress.done()
-        setLoading(false)
+      if (pageNum === 1) {
+        NProgress.start()
       }
+
+      const { data, error, total } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)
+      if (error) throw error
+      
+      if (data) {
+        if (pageNum === 1) {
+          setTotalImages(total || 0)
+          setImages(data)
+        } else {
+          setImages(prev => {
+            const existingIds = new Set(prev.map(img => img.id))
+            const newImages = data.filter(img => !existingIds.has(img.id))
+            return [...prev, ...newImages]
+          })
+        }
+        
+        // Only set hasMore if we received a full page of items
+        setHasMore(data.length === ITEMS_PER_PAGE)
+      }
+    } catch (error) {
+      console.error('Error loading images:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load images"
+      })
+    } finally {
+      if (pageNum === 1) {
+        NProgress.done()
+      }
+      setLoading(false)
+      setIsLoadingMore(false)
+      loadingRef.current = false
     }
   }, [user?.id, toast])
 
   // Initial load
   useEffect(() => {
     if (user) {
+      setPage(1)
       loadImages(1)
     }
   }, [user, loadImages])
+
+  // Improved infinite scroll effect
+  useEffect(() => {
+    const handleLoadMore = () => {
+      if (inView && hasMore && !loading && !isLoadingMore && !loadingRef.current) {
+        loadImages(page + 1)
+        setPage(p => p + 1)
+      }
+    }
+
+    // Add a debounce to prevent rapid firing
+    const debouncedHandleLoadMore = debounce(handleLoadMore, 100)
+
+    if (inView) {
+      debouncedHandleLoadMore()
+    }
+
+    return () => {
+      debouncedHandleLoadMore.cancel()
+    }
+  }, [inView, hasMore, loading, isLoadingMore, page, loadImages])
 
   // Update the download handler to handle different formats
   const handleDownload = async (
@@ -514,44 +511,38 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Creations</h1>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <p className="text-muted-foreground">
-              {user.email}
-            </p>
-            <Badge variant="secondary">
-              {images.length} Images
-            </Badge>
-          </div>
-          
-          {/* Top pagination - only visible on desktop */}
-          {images.length > 0 && (
-            <div className="hidden md:block">
-              <PaginationControls />
-            </div>
-          )}
+        <div className="flex items-center gap-4">
+          <p className="text-muted-foreground">
+            {user.email}
+          </p>
+          <Badge variant="secondary">
+            {totalImages} Images
+          </Badge>
         </div>
       </div>
 
-      {/* Image Grid */}
+      {/* Optimize Image Grid */}
       {images.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {images.map((image) => (
-              <ImageCard
-                key={image.id}
-                image={image}
-                onDownload={handleDownloadMemo}
-                onShare={handleShareMemo}
-                downloadingId={downloadingId}
-                sharingId={sharingId}
-              />
-            ))}
-          </div>
-          
-          {/* Bottom pagination - always visible */}
-          <PaginationControls className="mt-8" />
-        </>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {images.map((image) => (
+            <ImageCard
+              key={image.id}
+              image={image}
+              onDownload={handleDownloadMemo}
+              onShare={handleShareMemo}
+              downloadingId={downloadingId}
+              sharingId={sharingId}
+            />
+          ))}
+          {/* Optimize intersection observer */}
+          {hasMore && !loading && (
+            <div 
+              ref={ref} 
+              className="col-span-full h-10 flex justify-center"
+              aria-hidden="true"
+            />
+          )}
+        </div>
       ) : (
         <div className="text-center py-12">
           <h3 className="text-xl font-semibold mb-2">No Images Yet</h3>
@@ -562,4 +553,31 @@ export default function ProfilePage() {
       )}
     </div>
   )
+}
+
+// Add debounce utility at the top of the file
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): T & { cancel: () => void } {
+  let timeout: NodeJS.Timeout | null = null
+
+  const debounced = (...args: Parameters<T>) => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+    timeout = setTimeout(() => {
+      func(...args)
+    }, wait)
+  }
+
+  debounced.cancel = () => {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
+  }
+
+  return debounced as T & { cancel: () => void }
+} 
 } 
