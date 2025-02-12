@@ -12,22 +12,20 @@ export type GenerationStatus = 'idle' | 'queued' | 'generating' | 'completed' | 
 export const STYLE_OPTIONS = [
   {
     id: 'vector_illustration/doodle_line_art',
-    name: 'Line Art',
-    description: 'Simple black & white line drawings with clean, minimal style',
-    img: '/styles/line_art.png'
+    label: 'Line Art',
+    description: 'Simple vector illustrations with clean lines'
+  },
+  {
+    id: 'digital_illustration/watercolor',
+    label: 'Watercolor',
+    description: 'Soft, artistic watercolor style'
   },
   {
     id: "flux_lora",
     name: "Color Doodle",
-    description: "Playful and vibrant doodle art with colorful elements",
-    img: '/styles/color_doodle.png'
+    description: "Colorful and playful doodle line art style",
+    credits: 1
   },
-  {
-    id: 'digital_illustration/watercolor',
-    name: 'Watercolor',
-    description: 'Soft and artistic illustrations with watercolor textures',
-    img: '/styles/watercolor.png'
-  }
 ]
 
 export type StyleOption = typeof STYLE_OPTIONS[number]['id'] 

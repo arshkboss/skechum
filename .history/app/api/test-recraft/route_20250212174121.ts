@@ -29,9 +29,7 @@ export async function POST(request: Request) {
       style === "flux_lora" 
         ? fal.subscribe("fal-ai/flux-lora", {
             input: {
-              // Prepend "colordoodle" to the user's prompt for flux_lora model
-              prompt: `colordoodle ${prompt}`,
-              // @ts-ignore
+              prompt,
               model_name: null,
               loras: [{
                 path: "https://v3.fal.media/files/rabbit/L9zZ0FZP-BEfN36McaQMj_pytorch_lora_weights.safetensors",

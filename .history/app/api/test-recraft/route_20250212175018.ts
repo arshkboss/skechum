@@ -9,7 +9,7 @@ export const maxDuration = 30 // Set max duration to 30 seconds for Vercel
 
 export async function POST(request: Request) {
   try {
-    const { prompt, style = "vector_illustration/doodle_line_art" } = await request.json()
+    const { prompt, style = "flux_lora" } = await request.json()
 
     if (!prompt) {
       return NextResponse.json(
@@ -31,7 +31,6 @@ export async function POST(request: Request) {
             input: {
               // Prepend "colordoodle" to the user's prompt for flux_lora model
               prompt: `colordoodle ${prompt}`,
-              // @ts-ignore
               model_name: null,
               loras: [{
                 path: "https://v3.fal.media/files/rabbit/L9zZ0FZP-BEfN36McaQMj_pytorch_lora_weights.safetensors",

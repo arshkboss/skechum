@@ -13,19 +13,19 @@ export const STYLE_OPTIONS = [
   {
     id: 'vector_illustration/doodle_line_art',
     name: 'Line Art',
-    description: 'Simple black & white line drawings with clean, minimal style',
+    description: 'Clean, minimalist black & white line illustrations',
     img: '/styles/line_art.png'
   },
   {
     id: "flux_lora",
     name: "Color Doodle",
-    description: "Playful and vibrant doodle art with colorful elements",
+    description: "Vibrant, playful illustrations with colorful doodle style",
     img: '/styles/color_doodle.png'
   },
   {
     id: 'digital_illustration/watercolor',
     name: 'Watercolor',
-    description: 'Soft and artistic illustrations with watercolor textures',
+    description: 'Soft, dreamy illustrations with watercolor effects',
     img: '/styles/watercolor.png'
   }
 ]

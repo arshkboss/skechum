@@ -263,7 +263,7 @@ export default function CreatePage() {
         <Card className="p-6 space-y-6">
           <div>
             <h2 className="text-xl font-bold">Create Illustrations with Skechum</h2>
-            <p className="text-muted-foreground">Write a prompt and let the AI generate an illustration</p>
+            <p className="text-muted-foreground">AI-powered illustrations</p>
           </div>
 
           <div className="space-y-4">
