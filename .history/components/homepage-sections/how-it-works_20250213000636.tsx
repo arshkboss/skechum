@@ -24,7 +24,7 @@ export function HowItWorksSection() {
             </span>
             <div className="aspect-square relative mb-4 bg-muted/50 rounded-lg overflow-hidden">
               <Image
-                src="/how-it-works/1.png"
+                src="how-it-works/step1.png"
                 alt="Enter a prompt to generate an illustration"
                 fill
                 className="object-cover"
@@ -45,7 +45,7 @@ export function HowItWorksSection() {
             </span>
             <div className="aspect-square relative mb-4 bg-muted/50 rounded-lg overflow-hidden">
               <Image
-                src="/how-it-works/2.png"
+                src="how-it-works/step2.png"
                 alt="Choose a style"
                 fill
                 className="object-cover"
@@ -66,7 +66,7 @@ export function HowItWorksSection() {
             </span>
             <div className="aspect-square relative mb-4 bg-muted/50 rounded-lg overflow-hidden">
               <Image
-                src="/how-it-works/3.png"
+                src="how-it-works/step3.png"
                 alt="Get your illustration"
                 fill
                 className="object-cover"
