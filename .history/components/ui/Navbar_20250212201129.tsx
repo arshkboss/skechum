@@ -14,8 +14,6 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { useTheme } from "next-themes"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -34,7 +32,6 @@ export default function Navbar({ user }: { user: any }) {
   const pathname = usePathname()
   const supabase = createClient();
   const [open, setOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     async function fetchCredits() {
@@ -97,10 +94,6 @@ export default function Navbar({ user }: { user: any }) {
     closeMenu();
   };
 
-  const handleThemeChange = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 w-full mx-auto relative">
@@ -155,10 +148,6 @@ export default function Navbar({ user }: { user: any }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] p-0">
-            <SheetTitle asChild>
-              <VisuallyHidden>Navigation Menu</VisuallyHidden>
-            </SheetTitle>
-            
             <div className="flex flex-col h-full">
               {/* Profile Card for Mobile */}
               {user && (
@@ -224,7 +213,7 @@ export default function Navbar({ user }: { user: any }) {
               </nav>
 
               {/* Footer Actions */}
-              <div className="mt-auto p-6 border-t space-y-4">
+              <div className="mt-auto p-6 border-t">
                 {user ? (
                   <Button 
                     variant="ghost" 

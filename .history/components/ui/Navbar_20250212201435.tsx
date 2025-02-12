@@ -15,7 +15,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -155,10 +154,6 @@ export default function Navbar({ user }: { user: any }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[300px] p-0">
-            <SheetTitle asChild>
-              <VisuallyHidden>Navigation Menu</VisuallyHidden>
-            </SheetTitle>
-            
             <div className="flex flex-col h-full">
               {/* Profile Card for Mobile */}
               {user && (
