@@ -16,7 +16,7 @@ export function FaqSection() {
     <div className="w-full">
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
-        <p className="text-muted-foreground">Everything you need to know about getting started with Skechum</p>
+        <p className="text-muted-foreground">Everything you need to know about getting started with Sketchum</p>
       </div>
 
       <div className="max-w-3xl mx-auto">
