@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, MessageSquare, MapPin, Clock } from "lucide-react"
 import { motion } from "framer-motion"
-import { useToast } from "@/hooks/use-toast"
-import { useState, useRef } from "react"
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -57,46 +55,6 @@ const contactInfo = [
 
 
 export default function ContactPage() {
-  const { toast } = useToast()
-  const formRef = useRef<HTMLFormElement>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      const formData = new FormData(formRef.current!)
-      formData.append("access_key", "1e250b77-b3f2-4ebf-ad57-634903ce6909")
-
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: formData
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast({
-          title: "Success!",
-          description: "Your message has been sent successfully.",
-          variant: "default",
-        })
-        formRef.current?.reset()
-      } else {
-        throw new Error(data.message || "Something went wrong")
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   return (
     <>
       {/* Background */}
@@ -169,18 +127,16 @@ export default function ContactPage() {
             {/* Contact Form */}
             <motion.div variants={fadeIn}>
               <Card className="p-8 backdrop-blur-sm bg-white/50 dark:bg-gray-950/50">
-                <form ref={formRef} onSubmit={onSubmit} className="space-y-6">
+                <form className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium">
                         Name
                       </label>
                       <Input 
-                        id="name"
-                        name="name"
+                        id="name" 
                         placeholder="Your name"
-                        className="bg-white/50 dark:bg-gray-900/50"
-                        required
+                        className="bg-white/50 dark:bg-gray-900/50" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -188,12 +144,10 @@ export default function ContactPage() {
                         Email
                       </label>
                       <Input 
-                        id="email"
-                        name="email"
-                        type="email"
+                        id="email" 
+                        type="email" 
                         placeholder="you@example.com"
                         className="bg-white/50 dark:bg-gray-900/50"
-                        required
                       />
                     </div>
                   </div>
@@ -202,11 +156,9 @@ export default function ContactPage() {
                       Subject
                     </label>
                     <Input 
-                      id="subject"
-                      name="subject"
+                      id="subject" 
                       placeholder="How can we help?"
                       className="bg-white/50 dark:bg-gray-900/50"
-                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -214,21 +166,14 @@ export default function ContactPage() {
                       Message
                     </label>
                     <Textarea 
-                      id="message"
-                      name="message"
+                      id="message" 
                       placeholder="Your message..."
                       rows={6}
                       className="bg-white/50 dark:bg-gray-900/50 resize-none"
-                      required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Message"}
+                  <Button size="lg" className="w-full">
+                    Send Message
                   </Button>
                 </form>
               </Card>

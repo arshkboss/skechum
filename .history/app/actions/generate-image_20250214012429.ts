@@ -1,26 +1,41 @@
-import { fal } from "@fal-ai/client"
-import { NextResponse } from "next/server"
+'use server'
 
+import { fal } from "@fal-ai/client"
+
+// Configure fal client
 fal.config({
   credentials: process.env.FAL_KEY
 })
 
-export const maxDuration = 50 // Set max duration to 30 seconds for Vercel
+// Define the allowed style types
+type StyleType = 
+  | "any"
+  | "realistic_image"
+  | "digital_illustration"
+  | "vector_illustration"
+  | "vector_illustration/doodle_line_art"
+  | "flux_lora"
+  // Add other style types as needed
 
-export async function POST(request: Request) {
+// Define type for the response
+export type GenerationResponse = {
+  images: { url: string }[]
+  error?: string
+}
+
+// Define the expected result type from fal.subscribe
+type FalResult = {
+  images: { url: string }[]
+}
+
+export async function generateImage(
+  prompt: string, 
+  style: StyleType = "vector_illustration/doodle_line_art"
+): Promise<GenerationResponse> {
   try {
-    const { prompt, style = "vector_illustration/doodle_line_art" } = await request.json()
-
-    if (!prompt) {
-      return NextResponse.json(
-        { error: "Missing prompt" },
-        { status: 400 }
-      )
-    }
-
     // Add timeout promise
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Generation timed out')), 50000) // 50 second timeout
+      setTimeout(() => reject(new Error('Generation timed out')), 50000)
     })
 
     // Race between the generation and timeout
@@ -29,7 +44,6 @@ export async function POST(request: Request) {
       style === "flux_lora" 
         ? fal.subscribe("fal-ai/flux-lora", {
             input: {
-              // Prepend "colordoodle" to the user's prompt for flux_lora model
               prompt: `colordoodle ${prompt}`,
               // @ts-ignore
               model_name: null,
@@ -52,28 +66,17 @@ export async function POST(request: Request) {
               colors: []
             },
             logs: true,
-            pollInterval: 1000, // Poll every second
+            pollInterval: 1000,
           }),
       timeoutPromise
-    ])
+    ]) as FalResult // Type assertion here since we know the structure
 
-    return NextResponse.json(result)
+    return { images: result.images }
   } catch (error) {
     console.error("Generation error:", error)
-    
-    // Handle specific error types
-    if (error instanceof Error) {
-      if (error.message === 'Generation timed out') {
-        return NextResponse.json(
-          { error: "Generation timed out. Please try again." },
-          { status: 504 }
-        )
-      }
+    return { 
+      images: [],
+      error: error instanceof Error ? error.message : "Failed to generate image" 
     }
-
-    return NextResponse.json(
-      { error: "Failed to generate image" },
-      { status: 500 }
-    )
   }
 } 
