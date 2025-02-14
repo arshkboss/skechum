@@ -20,7 +20,7 @@ import Link from "next/link"
 import { getStyleBadgeText } from "@/app/(authenticated)/create/utils/style-utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PaymentsHistory } from "./components/payments-history"
-import CreditsLog from "./components/credits-log"
+import { CreditsLog } from "./components/credits-log"
 
 interface UserImage {
   id: string
@@ -523,7 +523,7 @@ export default function ProfilePage() {
         <TabsList>
           <TabsTrigger value="creations">Creations</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="credits">Generation Log</TabsTrigger>
+          <TabsTrigger value="credits">Credits Log</TabsTrigger>
         </TabsList>
 
         <TabsContent value="creations" className="space-y-6">

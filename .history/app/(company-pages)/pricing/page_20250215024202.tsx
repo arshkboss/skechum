@@ -29,7 +29,7 @@ export default function PricingPage() {
   const getPaymentLink = (productId: string) => {
     const params = new URLSearchParams({
       quantity: "1",
-      redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/transaction/success`,
+      redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
     })
     return `${DODO_CHECKOUT_BASE_URL}/${productId}?${params.toString()}`
   }

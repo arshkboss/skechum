@@ -19,7 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from "next/link"
 import { getStyleBadgeText } from "@/app/(authenticated)/create/utils/style-utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PaymentsHistory } from "./components/payments-history"
+import PaymentsHistory from "./components/payments-history"
 import CreditsLog from "./components/credits-log"
 
 interface UserImage {

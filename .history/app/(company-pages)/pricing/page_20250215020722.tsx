@@ -29,15 +29,15 @@ export default function PricingPage() {
   const getPaymentLink = (productId: string) => {
     const params = new URLSearchParams({
       quantity: "1",
-      redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/transaction/success`,
+      redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
     })
     return `${DODO_CHECKOUT_BASE_URL}/${productId}?${params.toString()}`
   }
 
   return (
     <>
-      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black">
-        <div className="absolute h-full w-full" />
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-gray-950">
+        <div className="absolute h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
       </div>
 
       <div className="relative">
@@ -46,7 +46,8 @@ export default function PricingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.15 }}
             transition={{ duration: 1 }}
-            />
+            className="h-[310px] w-[310px] rounded-full bg-gradient-to-r from-primary to-primary-foreground blur-3xl"
+          />
         </div>
 
         <div className="container relative min-h-screen py-20">
