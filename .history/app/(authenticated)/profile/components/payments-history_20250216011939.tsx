@@ -189,19 +189,19 @@ export function PaymentsHistory() {
               <AccordionTrigger className="hover:no-underline px-4 py-3">
                 <div className="flex flex-col w-full">
                   {/* Top Row - Date & Time */}
-                  <div className="flex justify-start text-sm text-muted-foreground/80">
+                  <div className="flex justify-end text-sm text-muted-foreground">
                     <span>{date} · {time}</span>
                   </div>
 
                   {/* Main Content Row */}
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2 space-y-2 flex flex-col">
                     {/* Plan Name */}
-                    <div className="text-base font-medium text-left">
+                    <div className="text-base font-medium">
                       {payment.plan_name}
                     </div>
                     
                     {/* Amount */}
-                    <div className="text-lg font-semibold text-left">
+                    <div className="text-lg font-semibold">
                       {payment.currency} {(payment.amount / 100).toFixed(2)}
                     </div>
 

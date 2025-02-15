@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useEffect, useCallback, memo, useRef } from "react"
 import { useUser } from "@/hooks/use-user"
 import { getUserImages, createSecureImageUrl } from "@/services/images"
 import { Card } from "@/components/ui/card"
@@ -307,7 +307,13 @@ export default function ProfilePage() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') || "images"
 
-  // Move PaginationControls inside main component
+  // Add a loading ref to prevent duplicate requests
+  const loadingRef = useRef(false)
+
+  // Add image cache
+  const imageCache = useRef(new Map<number, UserImage[]>())
+
+  // Update the PaginationControls component to handle the type checking
   const PaginationControls = ({ className }: { className?: string }) => {
     return (
       <div className={cn("flex items-center justify-center gap-4", className)}>
@@ -315,14 +321,15 @@ export default function ProfilePage() {
           variant="outline"
           size="sm"
           onClick={() => {
+            if (!user?.id) return // Add type guard
             scrollToTop();
             setCurrentPage(prev => {
               const newPage = prev - 1;
-              loadImages(newPage);
+              loadImages(newPage, user.id); // Now user.id is definitely string
               return newPage;
             });
           }}
-          disabled={currentPage === 1 || loading}
+          disabled={currentPage === 1 || loading || !user?.id} // Also disable if no user
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Previous
@@ -338,14 +345,15 @@ export default function ProfilePage() {
           variant="outline"
           size="sm"
           onClick={() => {
+            if (!user?.id) return // Add type guard
             scrollToTop();
             setCurrentPage(prev => {
               const newPage = prev + 1;
-              loadImages(newPage);
+              loadImages(newPage, user.id); // Now user.id is definitely string
               return newPage;
             });
           }}
-          disabled={currentPage >= totalPages || loading}
+          disabled={currentPage >= totalPages || loading || !user?.id} // Also disable if no user
         >
           Next
           <ChevronRight className="h-4 w-4 ml-2" />
@@ -355,40 +363,74 @@ export default function ProfilePage() {
   };
 
   // Modify loadImages to handle pagination
-  const loadImages = useCallback(async (pageNum: number) => {
-    if (user?.id) {
-      NProgress.start()
+  const loadImages = useCallback(async (pageNum: number, userId: string) => {
+    // Don't return early if in cache when on initial load (pageNum === 1)
+    if (pageNum !== 1 && imageCache.current.has(pageNum)) {
+      setLoading(false) // Ensure loading is set to false
+      setImages(imageCache.current.get(pageNum) || [])
+      return
+    }
+    
+    if (loadingRef.current) return // Prevent duplicate requests
+    
+    loadingRef.current = true
+    NProgress.start()
+    setLoading(true)
+    
+    try {
+      const { data, error, count } = await getUserImages(userId, pageNum, ITEMS_PER_PAGE)
+      if (error) {
+        console.error('Error fetching images:', error)
+        throw error
+      }
+      
+      if (data) {
+        // Cache the results
+        imageCache.current.set(pageNum, data)
+        setImages(data)
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
+      }
+    } catch (error) {
+      console.error('Error loading images:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load images"
+      })
+      // Clear images on error to prevent stale state
+      setImages([])
+    } finally {
+      loadingRef.current = false
+      NProgress.done()
       setLoading(false)
+    }
+  }, [toast])
+
+  // Update the useEffect to handle initial load better
+  useEffect(() => {
+    const initializeImages = async () => {
+      if (!user?.id) return
       
       try {
-        const { data, error, count } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)
-        if (error) throw error
-        
-        if (data) {
-          setImages(data)
-          // Calculate total pages based on count from backend
-          setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
-        }
+        await loadImages(1, user.id)
       } catch (error) {
-        console.error('Error loading images:', error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load images"
-        })
-      } finally {
-        NProgress.done()
-        setLoading(false)
+        console.error('Failed to initialize images:', error)
       }
     }
-  }, [user?.id, toast])
 
-  // Initial load
+    initializeImages()
+  }, [user?.id, loadImages]) // Remove images.length dependency
+
+  // Add a debug effect to monitor state changes
   useEffect(() => {
-    if (user) {
-      loadImages(1)
-    }
-  }, [user, loadImages])
+    console.log('State changed:', {
+      loading,
+      imagesCount: images.length,
+      currentPage,
+      totalPages,
+      userId: user?.id
+    })
+  }, [loading, images.length, currentPage, totalPages, user?.id])
 
   // Update the download handler to handle different formats
   const handleDownload = async (
@@ -496,6 +538,15 @@ export default function ProfilePage() {
   const handleDownloadMemo = useCallback(handleDownload, [])
   const handleShareMemo = useCallback(handleShare, [])
 
+  // Update the pagination handler
+  const handlePageChange = useCallback((newPage: number) => {
+    if (!user?.id) return
+    
+    scrollToTop()
+    setCurrentPage(newPage)
+    loadImages(newPage, user.id)
+  }, [user?.id, loadImages])
+
   if (userLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -530,22 +581,36 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="creations" className="space-y-6">
-          {/* Existing images grid code */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {images.map((image) => (
-              <ImageCard
-                key={image.id}
-                image={image}
-                onDownload={handleDownloadMemo}
-                onShare={handleShareMemo}
-                downloadingId={downloadingId}
-                sharingId={sharingId}
-              />
-            ))}
-          </div>
-          
-          {/* Pagination controls */}
-          <PaginationControls className="mt-8" />
+          {loading && images.length === 0 ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <LoadingSpinner className="h-8 w-8" />
+            </div>
+          ) : images.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {images.map((image) => (
+                  <ImageCard
+                    key={image.id}
+                    image={image}
+                    onDownload={handleDownloadMemo}
+                    onShare={handleShareMemo}
+                    downloadingId={downloadingId}
+                    sharingId={sharingId}
+                  />
+                ))}
+              </div>
+              
+              {/* Only show pagination if we have images */}
+              {images.length > 0 && <PaginationControls className="mt-8" />}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+              <h2 className="text-2xl font-bold mb-2">No Images Yet</h2>
+              <p className="text-muted-foreground">
+                Start creating to see your images here
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="payments">

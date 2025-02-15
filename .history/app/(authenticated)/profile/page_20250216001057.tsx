@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useEffect, useCallback, memo, useRef } from "react"
 import { useUser } from "@/hooks/use-user"
 import { getUserImages, createSecureImageUrl } from "@/services/images"
 import { Card } from "@/components/ui/card"
@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PaymentsHistory } from "./components/payments-history"
 import CreditsLog from "./components/credits-log"
 import { useSearchParams } from 'next/navigation'
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface UserImage {
   id: string
@@ -307,88 +308,84 @@ export default function ProfilePage() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') || "images"
 
-  // Move PaginationControls inside main component
-  const PaginationControls = ({ className }: { className?: string }) => {
-    return (
-      <div className={cn("flex items-center justify-center gap-4", className)}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev - 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage === 1 || loading}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            scrollToTop();
-            setCurrentPage(prev => {
-              const newPage = prev + 1;
-              loadImages(newPage);
-              return newPage;
-            });
-          }}
-          disabled={currentPage >= totalPages || loading}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-    );
-  };
-
-  // Modify loadImages to handle pagination
-  const loadImages = useCallback(async (pageNum: number) => {
-    if (user?.id) {
-      NProgress.start()
-      setLoading(false)
+  // Simplify loadImages function
+  const loadImages = useCallback(async (pageNum: number, userId: string) => {
+    if (!userId) return
+    
+    setLoading(true)
+    NProgress.start()
+    
+    try {
+      const { data, error, count } = await getUserImages(userId, pageNum, ITEMS_PER_PAGE)
       
-      try {
-        const { data, error, count } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)
-        if (error) throw error
-        
-        if (data) {
-          setImages(data)
-          // Calculate total pages based on count from backend
-          setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
-        }
-      } catch (error) {
-        console.error('Error loading images:', error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load images"
-        })
-      } finally {
-        NProgress.done()
-        setLoading(false)
+      if (error) throw error
+      
+      if (data) {
+        setImages(data)
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
       }
+    } catch (error) {
+      console.error('Error loading images:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load images"
+      })
+      setImages([])
+    } finally {
+      setLoading(false)
+      NProgress.done()
     }
-  }, [user?.id, toast])
+  }, [toast])
 
-  // Initial load
+  // Simplify initial load
   useEffect(() => {
-    if (user) {
-      loadImages(1)
+    if (user?.id) {
+      console.log('Loading initial images for user:', user.id)
+      loadImages(1, user.id)
     }
-  }, [user, loadImages])
+  }, [user?.id, loadImages])
+
+  // Simplify pagination controls
+  const PaginationControls = ({ className }: { className?: string }) => (
+    <div className={cn("flex items-center justify-center gap-4", className)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          if (!user?.id) return
+          const newPage = currentPage - 1
+          scrollToTop()
+          setCurrentPage(newPage)
+          loadImages(newPage, user.id)
+        }}
+        disabled={currentPage === 1 || loading || !user?.id}
+      >
+        <ChevronLeft className="h-4 w-4 mr-2" />
+        Previous
+      </Button>
+      
+      <span className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          if (!user?.id) return
+          const newPage = currentPage + 1
+          scrollToTop()
+          setCurrentPage(newPage)
+          loadImages(newPage, user.id)
+        }}
+        disabled={currentPage >= totalPages || loading || !user?.id}
+      >
+        Next
+        <ChevronRight className="h-4 w-4 ml-2" />
+      </Button>
+    </div>
+  )
 
   // Update the download handler to handle different formats
   const handleDownload = async (
@@ -496,7 +493,7 @@ export default function ProfilePage() {
   const handleDownloadMemo = useCallback(handleDownload, [])
   const handleShareMemo = useCallback(handleShare, [])
 
-  if (userLoading || loading) {
+  if (userLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner className="h-8 w-8" />
@@ -530,22 +527,42 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="creations" className="space-y-6">
-          {/* Existing images grid code */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {images.map((image) => (
-              <ImageCard
-                key={image.id}
-                image={image}
-                onDownload={handleDownloadMemo}
-                onShare={handleShareMemo}
-                downloadingId={downloadingId}
-                sharingId={sharingId}
-              />
-            ))}
-          </div>
-          
-          {/* Pagination controls */}
-          <PaginationControls className="mt-8" />
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-square rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : images.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {images.map((image) => (
+                  <ImageCard
+                    key={image.id}
+                    image={image}
+                    onDownload={handleDownloadMemo}
+                    onShare={handleShareMemo}
+                    downloadingId={downloadingId}
+                    sharingId={sharingId}
+                  />
+                ))}
+              </div>
+              {totalPages > 1 && <PaginationControls className="mt-8" />}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+              <h2 className="text-2xl font-bold mb-2">No Images Yet</h2>
+              <p className="text-muted-foreground">
+                Start creating to see your images here
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="payments">

@@ -358,7 +358,7 @@ export default function ProfilePage() {
   const loadImages = useCallback(async (pageNum: number) => {
     if (user?.id) {
       NProgress.start()
-      setLoading(false)
+      setLoading(true)
       
       try {
         const { data, error, count } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)

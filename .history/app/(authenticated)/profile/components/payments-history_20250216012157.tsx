@@ -189,7 +189,7 @@ export function PaymentsHistory() {
               <AccordionTrigger className="hover:no-underline px-4 py-3">
                 <div className="flex flex-col w-full">
                   {/* Top Row - Date & Time */}
-                  <div className="flex justify-start text-sm text-muted-foreground/80">
+                  <div className="flex justify-end text-sm text-muted-foreground bg-gray">
                     <span>{date} · {time}</span>
                   </div>
 

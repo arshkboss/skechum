@@ -21,7 +21,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { useUser } from "@/hooks/use-user"
-
+import { ChevronDownIcon } from "@radix-ui/react-icons"
 
 interface Payment {
   id: string
@@ -176,44 +176,44 @@ export function PaymentsHistory() {
 
   // Mobile view (below md)
   const MobileView = () => (
-    <div className="md:hidden">
-      <Accordion type="single" collapsible className="w-full space-y-2">
+    <div className="md:hidden space-y-2">
+      <Accordion type="single" collapsible className="w-full">
         {payments.map((payment) => {
           const { date, time } = formatDateTime(payment.created_at)
           return (
             <AccordionItem 
               key={payment.id} 
               value={payment.id}
-              className="border rounded-lg bg-card overflow-hidden"
+              className="border rounded-lg mb-2 px-4 py-2 bg-card"
             >
-              <AccordionTrigger className="hover:no-underline px-4 py-3">
-                <div className="flex flex-col w-full">
-                  {/* Top Row - Date & Time */}
-                  <div className="flex justify-start text-sm text-muted-foreground/80">
-                    <span>{date} · {time}</span>
+              <AccordionTrigger className="hover:no-underline [&[data-state=open]>div>.chevron]:rotate-180">
+                <div className="flex flex-col w-full gap-2">
+                  {/* Header Row with Date/Time */}
+                  <div className="flex justify-end items-center text-sm text-muted-foreground">
+                    <div className="flex flex-col items-end">
+                      <span className="font-medium text-foreground">{date}</span>
+                      <span>{time}</span>
+                    </div>
                   </div>
 
                   {/* Main Content Row */}
-                  <div className="mt-2 space-y-2">
-                    {/* Plan Name */}
-                    <div className="text-base font-medium text-left">
-                      {payment.plan_name}
-                    </div>
-                    
-                    {/* Amount */}
-                    <div className="text-lg font-semibold text-left">
-                      {payment.currency} {(payment.amount / 100).toFixed(2)}
+                  <div className="flex items-center justify-between w-full">
+                    {/* Left Side - Plan & Amount */}
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium text-base">{payment.plan_name}</span>
+                      <span className="text-base font-semibold">
+                        {payment.currency} {(payment.amount / 100).toFixed(2)}
+                      </span>
                     </div>
 
-                    {/* Credits and Status */}
-                    <div className="flex items-center justify-between">
+                    {/* Right Side - Credits & Status */}
+                    <div className="flex flex-col items-end gap-1">
                       <Badge 
                         variant={payment.credits_added > 0 ? "success" : "secondary"}
                         className="px-2 py-0.5"
                       >
                         {payment.credits_added} credits
                       </Badge>
-
                       <Badge 
                         variant={getStatusBadgeVariant(payment.status)}
                         className="capitalize px-2 py-0.5"
@@ -222,44 +222,81 @@ export function PaymentsHistory() {
                       </Badge>
                     </div>
 
-                    {/* Error Message if failed */}
-                    {payment.status === 'failed' && payment.plan_details?.error_message && (
-                      <div className="text-xs text-destructive">
-                        {payment.plan_details.error_message}
-                      </div>
-                    )}
+                    {/* Chevron indicator */}
+                    <div className="chevron ml-2 transition-transform duration-200">
+                      <ChevronDownIcon className="h-4 w-4" />
+                    </div>
                   </div>
+
+                  {/* Error Message if failed */}
+                  {payment.status === 'failed' && payment.plan_details?.error_message && (
+                    <div className="text-xs text-destructive text-left">
+                      {payment.plan_details.error_message}
+                    </div>
+                  )}
                 </div>
               </AccordionTrigger>
 
               <AccordionContent>
-                <div className="px-4 py-4 bg-muted/30 border-t">
+                <Card className="mt-2 p-4 bg-muted/30">
                   <div className="space-y-4">
-                    {/* Transaction Details */}
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      <div>
-                        <div className="text-sm text-muted-foreground">Payment Method</div>
-                        <div className="font-medium mt-0.5 uppercase">{payment.payment_method}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-muted-foreground">Plan Credits</div>
-                        <div className="font-medium mt-0.5">{payment.plan_credits}</div>
-                      </div>
-                      <div className="col-span-2">
-                        <div className="text-sm text-muted-foreground">Transaction ID</div>
-                        <div className="font-medium mt-0.5 text-xs font-mono break-all">
-                          {payment.payment_id}
+                    {/* Transaction Details Section */}
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
+                        Transaction Details
+                      </h4>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div>
+                          <div className="text-muted-foreground">Method</div>
+                          <div className="font-medium uppercase">{payment.payment_method}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Transaction ID</div>
+                          <div className="font-medium text-xs break-all">{payment.payment_id}</div>
                         </div>
                       </div>
-                      {payment.customer_name && (
-                        <div className="col-span-2">
-                          <div className="text-sm text-muted-foreground">Customer</div>
-                          <div className="font-medium mt-0.5">{payment.customer_name}</div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Plan Details Section */}
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
+                        Plan Information
+                      </h4>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div>
+                          <div className="text-muted-foreground">Plan Type</div>
+                          <div className="font-medium">{payment.plan_name}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Total Credits</div>
+                          <div className="font-medium">{payment.plan_credits} credits</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Amount</div>
+                          <div className="font-medium">
+                            {payment.currency} {(payment.amount / 100).toFixed(2)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Credits Added</div>
+                          <div className="font-medium">{payment.credits_added} credits</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {payment.customer_name && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground">
+                          Customer
+                        </h4>
+                        <div className="text-sm">
+                          <div className="text-muted-foreground">Name</div>
+                          <div className="font-medium">{payment.customer_name}</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </Card>
               </AccordionContent>
             </AccordionItem>
           )

@@ -189,46 +189,47 @@ export function PaymentsHistory() {
               <AccordionTrigger className="hover:no-underline px-4 py-3">
                 <div className="flex flex-col w-full">
                   {/* Top Row - Date & Time */}
-                  <div className="flex justify-start text-sm text-muted-foreground/80">
-                    <span>{date} · {time}</span>
+                  <div className="flex justify-end text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center gap-1">
+                      <span>{date}</span>
+                      <span>·</span>
+                      <span>{time}</span>
+                    </div>
                   </div>
 
                   {/* Main Content Row */}
-                  <div className="mt-2 space-y-2">
-                    {/* Plan Name */}
-                    <div className="text-base font-medium text-left">
-                      {payment.plan_name}
-                    </div>
-                    
-                    {/* Amount */}
-                    <div className="text-lg font-semibold text-left">
-                      {payment.currency} {(payment.amount / 100).toFixed(2)}
-                    </div>
-
-                    {/* Credits and Status */}
-                    <div className="flex items-center justify-between">
+                  <div className="grid grid-cols-[1fr,auto] gap-x-4 w-full">
+                    {/* Left Column - Plan & Amount */}
+                    <div className="space-y-1.5">
+                      <span className="font-medium block">{payment.plan_name}</span>
+                      <span className="text-lg font-semibold block">
+                        {payment.currency} {(payment.amount / 100).toFixed(2)}
+                      </span>
                       <Badge 
                         variant={payment.credits_added > 0 ? "success" : "secondary"}
-                        className="px-2 py-0.5"
+                        className="mt-1"
                       >
                         {payment.credits_added} credits
                       </Badge>
+                    </div>
 
+                    {/* Right Column - Status */}
+                    <div className="flex flex-col items-end justify-start">
                       <Badge 
                         variant={getStatusBadgeVariant(payment.status)}
-                        className="capitalize px-2 py-0.5"
+                        className="capitalize"
                       >
                         {payment.status}
                       </Badge>
                     </div>
-
-                    {/* Error Message if failed */}
-                    {payment.status === 'failed' && payment.plan_details?.error_message && (
-                      <div className="text-xs text-destructive">
-                        {payment.plan_details.error_message}
-                      </div>
-                    )}
                   </div>
+
+                  {/* Error Message if failed */}
+                  {payment.status === 'failed' && payment.plan_details?.error_message && (
+                    <div className="text-xs text-destructive mt-3">
+                      {payment.plan_details.error_message}
+                    </div>
+                  )}
                 </div>
               </AccordionTrigger>
 

@@ -186,78 +186,85 @@ export function PaymentsHistory() {
               value={payment.id}
               className="border rounded-lg bg-card overflow-hidden"
             >
-              <AccordionTrigger className="hover:no-underline px-4 py-3">
+              <AccordionTrigger className="hover:no-underline [&[data-state=open]>div>.chevron]:rotate-180">
                 <div className="flex flex-col w-full">
                   {/* Top Row - Date & Time */}
-                  <div className="flex justify-start text-sm text-muted-foreground/80">
-                    <span>{date} · {time}</span>
+                  <div className="flex justify-end mb-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <span>{date}</span>
+                      <span>·</span>
+                      <span>{time}</span>
+                    </div>
                   </div>
 
                   {/* Main Content Row */}
-                  <div className="mt-2 space-y-2">
-                    {/* Plan Name */}
-                    <div className="text-base font-medium text-left">
-                      {payment.plan_name}
-                    </div>
-                    
-                    {/* Amount */}
-                    <div className="text-lg font-semibold text-left">
-                      {payment.currency} {(payment.amount / 100).toFixed(2)}
+                  <div className="flex items-start justify-between w-full">
+                    {/* Left Column - Plan & Amount */}
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{payment.plan_name}</span>
+                      <span className="text-lg font-semibold">
+                        {payment.currency} {(payment.amount / 100).toFixed(2)}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge 
+                          variant={payment.credits_added > 0 ? "success" : "secondary"}
+                          className="px-2 py-0.5"
+                        >
+                          {payment.credits_added} credits
+                        </Badge>
+                      </div>
                     </div>
 
-                    {/* Credits and Status */}
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant={payment.credits_added > 0 ? "success" : "secondary"}
-                        className="px-2 py-0.5"
-                      >
-                        {payment.credits_added} credits
-                      </Badge>
-
+                    {/* Right Column - Status & Chevron */}
+                    <div className="flex items-center gap-2">
                       <Badge 
                         variant={getStatusBadgeVariant(payment.status)}
                         className="capitalize px-2 py-0.5"
                       >
                         {payment.status}
                       </Badge>
+                      
                     </div>
-
-                    {/* Error Message if failed */}
-                    {payment.status === 'failed' && payment.plan_details?.error_message && (
-                      <div className="text-xs text-destructive">
-                        {payment.plan_details.error_message}
-                      </div>
-                    )}
                   </div>
+
+                  {/* Error Message if failed */}
+                  {payment.status === 'failed' && payment.plan_details?.error_message && (
+                    <div className="text-xs text-destructive mt-2">
+                      {payment.plan_details.error_message}
+                    </div>
+                  )}
                 </div>
               </AccordionTrigger>
 
               <AccordionContent>
-                <div className="px-4 py-4 bg-muted/30 border-t">
+                <div className="px-4 py-3 bg-muted/30 border-t">
                   <div className="space-y-4">
                     {/* Transaction Details */}
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <div className="text-sm text-muted-foreground">Payment Method</div>
-                        <div className="font-medium mt-0.5 uppercase">{payment.payment_method}</div>
+                        <div className="text-muted-foreground mb-1">Payment Method</div>
+                        <div className="font-medium uppercase">{payment.payment_method}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">Plan Credits</div>
-                        <div className="font-medium mt-0.5">{payment.plan_credits}</div>
+                        <div className="text-muted-foreground mb-1">Plan Credits</div>
+                        <div className="font-medium">{payment.plan_credits}</div>
                       </div>
-                      <div className="col-span-2">
-                        <div className="text-sm text-muted-foreground">Transaction ID</div>
-                        <div className="font-medium mt-0.5 text-xs font-mono break-all">
-                          {payment.payment_id}
-                        </div>
-                      </div>
-                      {payment.customer_name && (
-                        <div className="col-span-2">
-                          <div className="text-sm text-muted-foreground">Customer</div>
-                          <div className="font-medium mt-0.5">{payment.customer_name}</div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Transaction ID */}
+                    <div className="text-sm">
+                      <div className="text-muted-foreground mb-1">Transaction ID</div>
+                      <div className="font-medium text-xs font-mono">
+                        {payment.payment_id}
+                      </div>
+                    </div>
+
+                    {payment.customer_name && (
+                      <div className="text-sm">
+                        <div className="text-muted-foreground mb-1">Customer</div>
+                        <div className="font-medium">{payment.customer_name}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </AccordionContent>

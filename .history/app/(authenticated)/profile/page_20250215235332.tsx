@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, memo } from "react"
+import { useState, useEffect, useCallback, memo, useRef } from "react"
 import { useUser } from "@/hooks/use-user"
 import { getUserImages, createSecureImageUrl } from "@/services/images"
 import { Card } from "@/components/ui/card"
@@ -307,6 +307,12 @@ export default function ProfilePage() {
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') || "images"
 
+  // Add a loading ref to prevent duplicate requests
+  const loadingRef = useRef(false)
+
+  // Add image cache
+  const imageCache = useRef(new Map<number, UserImage[]>())
+
   // Move PaginationControls inside main component
   const PaginationControls = ({ className }: { className?: string }) => {
     return (
@@ -318,7 +324,7 @@ export default function ProfilePage() {
             scrollToTop();
             setCurrentPage(prev => {
               const newPage = prev - 1;
-              loadImages(newPage);
+              loadImages(newPage, user?.id);
               return newPage;
             });
           }}
@@ -341,7 +347,7 @@ export default function ProfilePage() {
             scrollToTop();
             setCurrentPage(prev => {
               const newPage = prev + 1;
-              loadImages(newPage);
+              loadImages(newPage, user?.id);
               return newPage;
             });
           }}
@@ -355,40 +361,49 @@ export default function ProfilePage() {
   };
 
   // Modify loadImages to handle pagination
-  const loadImages = useCallback(async (pageNum: number) => {
-    if (user?.id) {
-      NProgress.start()
-      setLoading(false)
-      
-      try {
-        const { data, error, count } = await getUserImages(user.id, pageNum, ITEMS_PER_PAGE)
-        if (error) throw error
-        
-        if (data) {
-          setImages(data)
-          // Calculate total pages based on count from backend
-          setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
-        }
-      } catch (error) {
-        console.error('Error loading images:', error)
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load images"
-        })
-      } finally {
-        NProgress.done()
-        setLoading(false)
-      }
+  const loadImages = useCallback(async (pageNum: number, userId: string) => {
+    // Check cache first
+    if (imageCache.current.has(pageNum)) {
+      setImages(imageCache.current.get(pageNum) || [])
+      return
     }
-  }, [user?.id, toast])
+    
+    if (loadingRef.current) return // Prevent duplicate requests
+    
+    loadingRef.current = true
+    NProgress.start()
+    setLoading(true)
+    
+    try {
+      const { data, error, count } = await getUserImages(userId, pageNum, ITEMS_PER_PAGE)
+      if (error) throw error
+      
+      if (data) {
+        // Cache the results
+        imageCache.current.set(pageNum, data)
+        setImages(data)
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE))
+      }
+    } catch (error) {
+      console.error('Error loading images:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load images"
+      })
+    } finally {
+      loadingRef.current = false
+      NProgress.done()
+      setLoading(false)
+    }
+  }, [toast])
 
   // Initial load
   useEffect(() => {
-    if (user) {
-      loadImages(1)
+    if (user?.id && !images.length) {
+      loadImages(1, user.id)
     }
-  }, [user, loadImages])
+  }, [user?.id, loadImages, images.length])
 
   // Update the download handler to handle different formats
   const handleDownload = async (
@@ -495,6 +510,15 @@ export default function ProfilePage() {
   // Memoize handlers
   const handleDownloadMemo = useCallback(handleDownload, [])
   const handleShareMemo = useCallback(handleShare, [])
+
+  // Update the pagination handler
+  const handlePageChange = useCallback((newPage: number) => {
+    if (!user?.id) return
+    
+    scrollToTop()
+    setCurrentPage(newPage)
+    loadImages(newPage, user.id)
+  }, [user?.id, loadImages])
 
   if (userLoading || loading) {
     return (
