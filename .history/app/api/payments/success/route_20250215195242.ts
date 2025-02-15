@@ -70,6 +70,20 @@ export async function POST(req: Request) {
       const paymentDetails = await response.json()
       console.log('Payment details:', paymentDetails)
 
+      // First check if payment status is successful
+      if (paymentDetails.status !== 'succeeded') {
+        console.error('Payment failed:', paymentDetails)
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: "Payment was not successful",
+            details: `Payment status: ${paymentDetails.status}`,
+            payment_details: paymentDetails
+          }, 
+          { status: 400 }
+        )
+      }
+
       // Get plan details from the product cart
       const productId = paymentDetails.product_cart[0]?.product_id
       const planInfo = PLAN_DETAILS[productId]
@@ -80,13 +94,16 @@ export async function POST(req: Request) {
           { 
             success: false, 
             message: "Invalid product plan",
-            details: `Unknown product ID: ${productId}`
+            details: `Unknown product ID: ${productId}. Available plans: ${Object.keys(PLAN_DETAILS).join(', ')}`
           }, 
           { status: 400 }
         )
       }
 
-      // Always insert payment record, regardless of status
+      // Calculate credits from plan
+      const creditsToAdd = planInfo.credits
+
+      // First, insert payment record with plan details
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
@@ -95,7 +112,7 @@ export async function POST(req: Request) {
           amount: paymentDetails.total_amount,
           currency: paymentDetails.currency,
           status: paymentDetails.status,
-          credits_added: paymentDetails.status === 'succeeded' ? planInfo.credits : 0,
+          credits_added: paymentDetails.status === 'succeeded' ? creditsToAdd : 0, // Only add credits if succeeded
           payment_method: paymentDetails.payment_method,
           customer_name: paymentDetails.customer.name,
           customer_email: paymentDetails.customer.email,
@@ -104,12 +121,11 @@ export async function POST(req: Request) {
           created_at: paymentDetails.created_at,
           updated_at: new Date().toISOString(),
           plan_name: planInfo.name,
-          plan_credits: planInfo.credits,
+          plan_credits: creditsToAdd,
           plan_details: {
             product_id: productId,
             description: planInfo.description,
-            metadata: paymentDetails.metadata || {},
-            error_message: paymentDetails.error_message || null
+            metadata: paymentDetails.metadata || {}
           }
         }])
 
@@ -121,58 +137,55 @@ export async function POST(req: Request) {
         )
       }
 
-      // Check payment status after recording the payment
-      if (paymentDetails.status !== 'succeeded') {
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: "Payment was not successful",
-            details: `Payment status: ${paymentDetails.status}`,
-            error_message: paymentDetails.error_message,
-            payment_details: paymentDetails
-          }, 
-          { status: 400 }
-        )
-      }
-
       // Only proceed with credit updates if payment was successful
-      const { data: updatedCredits, error: creditError } = await supabase
-        .rpc('update_user_credits', {
-          p_user_id: user.id,
-          p_credits_to_add: planInfo.credits
-        })
+      if (paymentDetails.status === 'succeeded') {
+        // Update user credits
+        const { data: updatedCredits, error: creditError } = await supabase
+          .rpc('update_user_credits', {
+            p_user_id: user.id,
+            p_credits_to_add: creditsToAdd
+          })
 
-      if (creditError) {
-        console.error('Credit update error:', creditError)
-        return NextResponse.json(
-          { success: false, message: "Failed to update credits", error: creditError }, 
-          { status: 500 }
-        )
-      }
+        if (creditError) {
+          console.error('Credit update error:', creditError)
+          return NextResponse.json(
+            { success: false, message: "Failed to update credits", error: creditError }, 
+            { status: 500 }
+          )
+        }
 
-      // Log the credit transaction only for successful payments
-      const { error: logError } = await supabase
-        .from('credit_logs')
-        .insert([{
-          user_id: user.id,
-          amount: planInfo.credits,
-          type: 'purchase',
-          description: `Credits purchased via payment ${paymentId}`,
-          payment_id: paymentId,
-          previous_balance: updatedCredits.old_credits,
+        // Log the credit transaction
+        const { error: logError } = await supabase
+          .from('credit_logs')
+          .insert([{
+            user_id: user.id,
+            amount: creditsToAdd,
+            type: 'purchase',
+            description: `Credits purchased via payment ${paymentId}`,
+            payment_id: paymentId,
+            previous_balance: updatedCredits.old_credits,
+            new_balance: updatedCredits.new_credits,
+            created_at: new Date().toISOString()
+          }])
+
+        if (logError) {
+          console.error('Credit log error:', logError)
+        }
+
+        return NextResponse.json({ 
+          success: true,
+          message: "Payment processed successfully",
+          credits_added: creditsToAdd,
           new_balance: updatedCredits.new_credits,
-          created_at: new Date().toISOString()
-        }])
-
-      if (logError) {
-        console.error('Credit log error:', logError)
+          payment_details: paymentDetails
+        })
       }
 
+      // Return failed status for non-successful payments
       return NextResponse.json({ 
-        success: true,
-        message: "Payment processed successfully",
-        credits_added: planInfo.credits,
-        new_balance: updatedCredits.new_credits,
+        success: false,
+        message: "Payment was not successful",
+        status: paymentDetails.status,
         payment_details: paymentDetails
       })
 
