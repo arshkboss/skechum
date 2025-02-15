@@ -1,16 +1,33 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { pricingPlans } from "@/constants/pricing"
 
-// Create a map of product IDs to plan details for faster lookup
-const PLAN_DETAILS = pricingPlans.reduce((acc, plan) => ({
-  ...acc,
-  [plan.productId]: {
-    name: plan.name,
-    credits: plan.credits,
-    description: plan.description
+// Add interface for plan details
+interface PlanDetails {
+  [key: string]: {
+    name: string,
+    credits: number,
+    description: string
   }
-}), {} as Record<string, { name: string; credits: number; description: string }>)
+}
+
+// Add plan mapping
+const PLAN_DETAILS: PlanDetails = {
+  'pdt_euU2AfE7iRo3EFQtAkcBm': {
+    name: 'Starter Pack',
+    credits: 100,
+    description: '100 Generation Credits'
+  },
+  'pdt_2ndPlanProductId': {
+    name: 'Pro Pack',
+    credits: 500,
+    description: '500 Generation Credits'
+  },
+  'pdt_3rdPlanProductId': {
+    name: 'Business Pack',
+    credits: 1000,
+    description: '1000 Generation Credits'
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -72,21 +89,13 @@ export async function POST(req: Request) {
 
       // Get plan details from the product cart
       const productId = paymentDetails.product_cart[0]?.product_id
-      const planInfo = PLAN_DETAILS[productId]
-
-      if (!planInfo) {
-        console.error('Unknown product ID:', productId)
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: "Invalid product plan",
-            details: `Unknown product ID: ${productId}. Available plans: ${Object.keys(PLAN_DETAILS).join(', ')}`
-          }, 
-          { status: 400 }
-        )
+      const planInfo = PLAN_DETAILS[productId] || {
+        name: 'Custom Plan',
+        credits: Math.floor(paymentDetails.total_amount / 100), // fallback calculation
+        description: 'Custom Credit Purchase'
       }
 
-      // Calculate credits from plan
+      // Calculate credits from plan instead of amount
       const creditsToAdd = planInfo.credits
 
       // First, insert payment record with plan details
@@ -106,6 +115,7 @@ export async function POST(req: Request) {
           tax: paymentDetails.tax || 0,
           created_at: paymentDetails.created_at,
           updated_at: new Date().toISOString(),
+          // Add plan details
           plan_name: planInfo.name,
           plan_credits: creditsToAdd,
           plan_details: {

@@ -154,7 +154,6 @@ export async function POST(req: Request) {
 
       if (logError) {
         console.error('Credit log error:', logError)
-        // Don't return error here as credits were already added
       }
 
       return NextResponse.json({ 

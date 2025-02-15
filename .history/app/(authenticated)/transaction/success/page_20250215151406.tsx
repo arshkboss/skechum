@@ -93,6 +93,12 @@ export default function TransactionSuccessPage() {
           })
         } else {
           setResult(data)
+          // Dispatch credits update event
+          const event = new CustomEvent('creditsUpdated', {
+            detail: { credits: data.new_balance }
+          })
+          window.dispatchEvent(event)
+          
           toast({
             title: "Payment Successful",
             description: `Added ${data.credits_added} credits to your account.`,

@@ -48,20 +48,24 @@ export default function TransactionSuccessPage() {
 
   // Handle countdown and redirect
   useEffect(() => {
-    if (!result || error) return
-
-    const redirectTimeout = setTimeout(() => {
-      router.push('/profile?tab=payments')
-      router.replace('/profile?tab=payments')
-    }, 5000)
-
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => prev - 1)
-    }, 1000)
+    let timer: NodeJS.Timeout
+    
+    if (result && !error) {
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            router.push('/profile?tab=payments')
+            router.replace('/profile?tab=payments')
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
 
     return () => {
-      clearTimeout(redirectTimeout)
-      clearInterval(countdownInterval)
+      if (timer) clearInterval(timer)
     }
   }, [result, error, router])
 

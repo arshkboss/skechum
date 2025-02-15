@@ -1,16 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { pricingPlans } from "@/constants/pricing"
-
-// Create a map of product IDs to plan details for faster lookup
-const PLAN_DETAILS = pricingPlans.reduce((acc, plan) => ({
-  ...acc,
-  [plan.productId]: {
-    name: plan.name,
-    credits: plan.credits,
-    description: plan.description
-  }
-}), {} as Record<string, { name: string; credits: number; description: string }>)
 
 export async function POST(req: Request) {
   try {
@@ -70,26 +59,10 @@ export async function POST(req: Request) {
       const paymentDetails = await response.json()
       console.log('Payment details:', paymentDetails)
 
-      // Get plan details from the product cart
-      const productId = paymentDetails.product_cart[0]?.product_id
-      const planInfo = PLAN_DETAILS[productId]
+      // Calculate credits (1 credit per INR)
+      const creditsToAdd = Math.floor(paymentDetails.total_amount / 100)
 
-      if (!planInfo) {
-        console.error('Unknown product ID:', productId)
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: "Invalid product plan",
-            details: `Unknown product ID: ${productId}. Available plans: ${Object.keys(PLAN_DETAILS).join(', ')}`
-          }, 
-          { status: 400 }
-        )
-      }
-
-      // Calculate credits from plan
-      const creditsToAdd = planInfo.credits
-
-      // First, insert payment record with plan details
+      // First, insert payment record
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
@@ -105,14 +78,7 @@ export async function POST(req: Request) {
           business_id: paymentDetails.business_id,
           tax: paymentDetails.tax || 0,
           created_at: paymentDetails.created_at,
-          updated_at: new Date().toISOString(),
-          plan_name: planInfo.name,
-          plan_credits: creditsToAdd,
-          plan_details: {
-            product_id: productId,
-            description: planInfo.description,
-            metadata: paymentDetails.metadata || {}
-          }
+          updated_at: new Date().toISOString()
         }])
 
       if (paymentError) {

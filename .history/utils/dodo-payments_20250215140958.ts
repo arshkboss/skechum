@@ -13,6 +13,17 @@ export async function getPaymentDetails(paymentId: string) {
       }
     })
 
+    // If v1 fails, try without v1
+    if (!response.ok) {
+      console.log('V1 endpoint failed, trying alternative endpoint...')
+      response = await fetch(`${DODO_API_URL}/payments/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+    }
 
     if (!response.ok) {
       const errorText = await response.text()

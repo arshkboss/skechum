@@ -10,17 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { motion } from "framer-motion"
 
-// Add interface for API response
-interface PaymentResponse {
-  success: boolean
-  message: string
-  credits_added?: number
-  new_balance?: number
-  payment_details?: any
-  error?: any
-  details?: string
-}
-
 export default function TransactionSuccessPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -28,42 +17,10 @@ export default function TransactionSuccessPage() {
   const [processing, setProcessing] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<any | null>(null)
-  const [countdown, setCountdown] = useState(5)
   
   const paymentId = searchParams.get('payment_id')
   const status = searchParams.get('status')
   const isValidAccess = Boolean(paymentId && status)
-
-  // Prevent back navigation after successful payment
-  useEffect(() => {
-    window.history.pushState(null, '', window.location.href)
-    window.onpopstate = function() {
-      window.history.pushState(null, '', window.location.href)
-    }
-
-    return () => {
-      window.onpopstate = null
-    }
-  }, [])
-
-  // Handle countdown and redirect
-  useEffect(() => {
-    if (!result || error) return
-
-    const redirectTimeout = setTimeout(() => {
-      router.push('/profile?tab=payments')
-      router.replace('/profile?tab=payments')
-    }, 5000)
-
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => prev - 1)
-    }, 1000)
-
-    return () => {
-      clearTimeout(redirectTimeout)
-      clearInterval(countdownInterval)
-    }
-  }, [result, error, router])
 
   useEffect(() => {
     if (!isValidAccess) return
@@ -79,16 +36,14 @@ export default function TransactionSuccessPage() {
           }
         })
         
-        const data: PaymentResponse = await response.json()
-        console.log('Payment response:', data)
+        const data = await response.json()
         
-        if (!response.ok || !data.success) {
-          const errorMessage = data.message || data.details || 'Payment processing failed'
+        if (!response.ok) {
           console.error('Payment processing error:', data)
-          setError(errorMessage)
+          setError(data.message || 'Payment processing failed')
           toast({
             title: "Payment Processing Failed",
-            description: errorMessage,
+            description: data.message || "Please try again later",
             variant: "destructive"
           })
         } else {
@@ -172,11 +127,8 @@ export default function TransactionSuccessPage() {
                   <ShieldCheck className="h-6 w-6 text-green-500" />
                 </div>
                 <h1 className="text-2xl font-bold mb-2">Payment Successful</h1>
-                <p className="text-green-500 mb-2">
+                <p className="text-green-500 mb-6">
                   {result?.credits_added} credits have been added to your account
-                </p>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Redirecting to profile in {countdown} seconds...
                 </p>
               </>
             )}

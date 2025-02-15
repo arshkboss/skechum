@@ -1,16 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { pricingPlans } from "@/constants/pricing"
-
-// Create a map of product IDs to plan details for faster lookup
-const PLAN_DETAILS = pricingPlans.reduce((acc, plan) => ({
-  ...acc,
-  [plan.productId]: {
-    name: plan.name,
-    credits: plan.credits,
-    description: plan.description
-  }
-}), {} as Record<string, { name: string; credits: number; description: string }>)
 
 export async function POST(req: Request) {
   try {
@@ -70,26 +59,10 @@ export async function POST(req: Request) {
       const paymentDetails = await response.json()
       console.log('Payment details:', paymentDetails)
 
-      // Get plan details from the product cart
-      const productId = paymentDetails.product_cart[0]?.product_id
-      const planInfo = PLAN_DETAILS[productId]
+      // Calculate credits (1 credit per INR)
+      const creditsToAdd = Math.floor(paymentDetails.total_amount / 100)
 
-      if (!planInfo) {
-        console.error('Unknown product ID:', productId)
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: "Invalid product plan",
-            details: `Unknown product ID: ${productId}. Available plans: ${Object.keys(PLAN_DETAILS).join(', ')}`
-          }, 
-          { status: 400 }
-        )
-      }
-
-      // Calculate credits from plan
-      const creditsToAdd = planInfo.credits
-
-      // First, insert payment record with plan details
+      // Insert payment record
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
@@ -105,63 +78,59 @@ export async function POST(req: Request) {
           business_id: paymentDetails.business_id,
           tax: paymentDetails.tax || 0,
           created_at: paymentDetails.created_at,
-          updated_at: new Date().toISOString(),
-          plan_name: planInfo.name,
-          plan_credits: creditsToAdd,
-          plan_details: {
-            product_id: productId,
-            description: planInfo.description,
-            metadata: paymentDetails.metadata || {}
-          }
+          updated_at: new Date().toISOString()
         }])
 
       if (paymentError) {
         console.error('Payment insert error:', paymentError)
         return NextResponse.json(
-          { success: false, message: "Failed to save payment details", error: paymentError }, 
+          { 
+            success: false, 
+            message: "Failed to save payment details",
+            error: paymentError
+          }, 
           { status: 500 }
         )
       }
 
-      // Then, update user credits using upsert with ON CONFLICT
-      const { data: updatedCredits, error: creditError } = await supabase
-        .rpc('update_user_credits', {
-          p_user_id: user.id,
-          p_credits_to_add: creditsToAdd
+      // Update user credits
+      const { data: userCredits, error: creditsFetchError } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (creditsFetchError) {
+        console.error('Error fetching credits:', creditsFetchError)
+      }
+
+      const newCredits = (userCredits?.credits || 0) + creditsToAdd
+
+      const { error: creditError } = await supabase
+        .from('user_credits')
+        .upsert({
+          user_id: user.id,
+          credits: newCredits,
+          updated_at: new Date().toISOString()
         })
 
       if (creditError) {
         console.error('Credit update error:', creditError)
         return NextResponse.json(
-          { success: false, message: "Failed to update credits", error: creditError }, 
+          { 
+            success: false, 
+            message: "Failed to update credits",
+            error: creditError
+          }, 
           { status: 500 }
         )
-      }
-
-      // Log the credit transaction
-      const { error: logError } = await supabase
-        .from('credit_logs')
-        .insert([{
-          user_id: user.id,
-          amount: creditsToAdd,
-          type: 'purchase',
-          description: `Credits purchased via payment ${paymentId}`,
-          payment_id: paymentId,
-          previous_balance: updatedCredits.old_credits,
-          new_balance: updatedCredits.new_credits,
-          created_at: new Date().toISOString()
-        }])
-
-      if (logError) {
-        console.error('Credit log error:', logError)
-        // Don't return error here as credits were already added
       }
 
       return NextResponse.json({ 
         success: true,
         message: "Payment processed successfully",
         credits_added: creditsToAdd,
-        new_balance: updatedCredits.new_credits,
+        new_balance: newCredits,
         payment_details: paymentDetails
       })
 

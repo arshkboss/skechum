@@ -110,7 +110,7 @@ export function PaymentsHistory() {
               <TableHead>Credits</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Method</TableHead>
-              <TableHead>Payment ID</TableHead>
+              
             </TableRow>
           </TableHeader>
           <TableBody>

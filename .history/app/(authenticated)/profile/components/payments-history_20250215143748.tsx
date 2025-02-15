@@ -110,7 +110,7 @@ export function PaymentsHistory() {
               <TableHead>Credits</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Payment Method</TableHead>
-              <TableHead>Payment ID</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -146,7 +146,11 @@ export function PaymentsHistory() {
                   {payment.payment_method}
                 </TableCell>
                 <TableCell>
-                  {payment.payment_id}
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

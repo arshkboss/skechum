@@ -28,42 +28,10 @@ export default function TransactionSuccessPage() {
   const [processing, setProcessing] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<any | null>(null)
-  const [countdown, setCountdown] = useState(5)
   
   const paymentId = searchParams.get('payment_id')
   const status = searchParams.get('status')
   const isValidAccess = Boolean(paymentId && status)
-
-  // Prevent back navigation after successful payment
-  useEffect(() => {
-    window.history.pushState(null, '', window.location.href)
-    window.onpopstate = function() {
-      window.history.pushState(null, '', window.location.href)
-    }
-
-    return () => {
-      window.onpopstate = null
-    }
-  }, [])
-
-  // Handle countdown and redirect
-  useEffect(() => {
-    if (!result || error) return
-
-    const redirectTimeout = setTimeout(() => {
-      router.push('/profile?tab=payments')
-      router.replace('/profile?tab=payments')
-    }, 5000)
-
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => prev - 1)
-    }, 1000)
-
-    return () => {
-      clearTimeout(redirectTimeout)
-      clearInterval(countdownInterval)
-    }
-  }, [result, error, router])
 
   useEffect(() => {
     if (!isValidAccess) return
@@ -172,11 +140,8 @@ export default function TransactionSuccessPage() {
                   <ShieldCheck className="h-6 w-6 text-green-500" />
                 </div>
                 <h1 className="text-2xl font-bold mb-2">Payment Successful</h1>
-                <p className="text-green-500 mb-2">
+                <p className="text-green-500 mb-6">
                   {result?.credits_added} credits have been added to your account
-                </p>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Redirecting to profile in {countdown} seconds...
                 </p>
               </>
             )}

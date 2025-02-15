@@ -1,16 +1,33 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { pricingPlans } from "@/constants/pricing"
 
-// Create a map of product IDs to plan details for faster lookup
-const PLAN_DETAILS = pricingPlans.reduce((acc, plan) => ({
-  ...acc,
-  [plan.productId]: {
-    name: plan.name,
-    credits: plan.credits,
-    description: plan.description
+// Add interface for plan details
+interface PlanDetails {
+  [key: string]: {
+    name: string,
+    credits: number,
+    description: string
   }
-}), {} as Record<string, { name: string; credits: number; description: string }>)
+}
+
+// Add plan mapping to match our pricing plans
+const PLAN_DETAILS: PlanDetails = {
+  'pdt_euU2AfE7iRo3EFQtAkcBm': {
+    name: 'Basic Pack',
+    credits: 150,
+    description: '150 Generation Credits'
+  },
+  'pdt_7nAbtLg8GSVlIVIhM8URQ': {
+    name: 'Pro Pack',
+    credits: 400,
+    description: '400 Generation Credits'
+  },
+  'pdt_QXOV1j8asoIAd8JcgekHs': {
+    name: 'Advance Pack',
+    credits: 800,
+    description: '800 Generation Credits'
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -80,7 +97,7 @@ export async function POST(req: Request) {
           { 
             success: false, 
             message: "Invalid product plan",
-            details: `Unknown product ID: ${productId}. Available plans: ${Object.keys(PLAN_DETAILS).join(', ')}`
+            details: `Unknown product ID: ${productId}`
           }, 
           { status: 400 }
         )

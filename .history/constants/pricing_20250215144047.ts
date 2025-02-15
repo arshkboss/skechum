@@ -21,7 +21,6 @@ export const pricingPlans: readonly PricingPlan[] = [
     image: "/pricing-card/150.svg",
     imageAlt: "150 credits",
     productId: "pdt_euU2AfE7iRo3EFQtAkcBm",
-    description: "150 Generation Credits",
     features: [
       "150 credits",
       "Commercial use",
@@ -35,7 +34,6 @@ export const pricingPlans: readonly PricingPlan[] = [
     image: "/pricing-card/400.svg",
     imageAlt: "400 credits",
     productId: "pdt_7nAbtLg8GSVlIVIhM8URQ",
-    description: "400 Generation Credits",
     features: [
       "400 credits",
       "Commercial use",
@@ -52,7 +50,6 @@ export const pricingPlans: readonly PricingPlan[] = [
     image: "/pricing-card/800.svg",
     imageAlt: "800 credits",
     productId: "pdt_QXOV1j8asoIAd8JcgekHs",
-    description: "800 Generation Credits",
     features: [
       "800 credits",
       "Commercial use",
