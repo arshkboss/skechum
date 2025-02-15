@@ -26,14 +26,35 @@ const styles: Style[] = [
     description: "Minimalist black & white Notion-style illustrations",
     image: "/styles/notion-minimal.png",
     color: false
-  },
+  },/*
+  {
+    id: "line-art",
+    name: "Line Art",
+    description: "Elegant line drawings with clean strokes",
+    image: "/styles/line-art.png",
+    color: false
+  },*/
   {
     id: "watercolor",
     name: "Watercolor",
     description: "Soft and dreamy watercolor illustrations",
     image: "/styles/watercolor.png",
     color: true
-  }
+  }/*,
+  {
+    id: "flat-design",
+    name: "Flat Design",
+    description: "Modern flat illustrations with bold colors",
+    image: "/styles/flat-design.png",
+    color: true
+  },
+  {
+    id: "sketch",
+    name: "Sketch",
+    description: "Hand-drawn sketch style illustrations",
+    image: "/styles/sketch.png",
+    color: true
+  }*/
 ]
 
 

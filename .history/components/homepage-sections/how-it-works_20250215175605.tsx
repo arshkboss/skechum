@@ -14,8 +14,8 @@ const TIMINGS = {
   STYLE_SELECT_DELAY: 800, // Delay before style selection starts
   GENERATE_ENABLE_DELAY: 500, // Delay before generate button enables
   GENERATE_START_DELAY: 800,  // Delay before generation starts
-  GENERATE_DURATION: 1500,    // How long generation takes
-  TRANSITION_DURATION: 300,   // Duration of blur/focus transitions
+  GENERATE_DURATION: 1200,    // How long generation takes
+  TRANSITION_DURATION: 400,   // Duration of blur/focus transitions
 } as const
 
 export function HowItWorksSection() {

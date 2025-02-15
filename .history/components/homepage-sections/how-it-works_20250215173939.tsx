@@ -8,30 +8,18 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 
-// Animation timing constants (in milliseconds)
-const TIMINGS = {
-  TYPING_SPEED: 40,        // Speed of each character typing
-  STYLE_SELECT_DELAY: 800, // Delay before style selection starts
-  GENERATE_ENABLE_DELAY: 500, // Delay before generate button enables
-  GENERATE_START_DELAY: 800,  // Delay before generation starts
-  GENERATE_DURATION: 1500,    // How long generation takes
-  TRANSITION_DURATION: 300,   // Duration of blur/focus transitions
-} as const
-
 export function HowItWorksSection() {
   const [typedText, setTypedText] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
   const [isGenerateEnabled, setIsGenerateEnabled] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
+  const [activeStep, setActiveStep] = useState(1)
   
   const textToType = "group of people dancing"
 
-  // Typing animation effect
+  // Modified timing sequence
   useEffect(() => {
-    setActiveStep(1)
-    
     let currentIndex = 0
     const typingInterval = setInterval(() => {
       if (currentIndex <= textToType.length) {
@@ -39,27 +27,23 @@ export function HowItWorksSection() {
         currentIndex++
       } else {
         clearInterval(typingInterval)
-        // Move to step 2 and start style selection
         setTimeout(() => {
           setActiveStep(2)
           setSelectedStyle("doodle")
-          // Enable generate button after style selection
           setTimeout(() => {
             setIsGenerateEnabled(true)
-            // Start generating after showing enabled state
             setTimeout(() => {
               setIsGenerating(true)
-              setActiveStep(3)
-              // Show generating state
               setTimeout(() => {
+                setActiveStep(3)
                 setIsGenerating(false)
                 setShowPreview(true)
-              }, TIMINGS.GENERATE_DURATION)
-            }, TIMINGS.GENERATE_START_DELAY)
-          }, TIMINGS.GENERATE_ENABLE_DELAY)
-        }, TIMINGS.STYLE_SELECT_DELAY)
+              }, 2000)
+            }, 1000)
+          }, 500)
+        }, 1000)
       }
-    }, TIMINGS.TYPING_SPEED)
+    }, 100)
 
     return () => clearInterval(typingInterval)
   }, [])
@@ -85,22 +69,23 @@ export function HowItWorksSection() {
     }
   ]
 
-  const getStepClasses = (step: number) => {
-    const baseClasses = `relative bg-background rounded-xl shadow-lg p-6 border border-border transition-all duration-${TIMINGS.TRANSITION_DURATION}`
-    
-    const zIndex = {
+  // Helper function for card classes
+  const getCardClasses = (step: number) => {
+    const baseClasses = "relative bg-background rounded-xl shadow-lg md:shadow-2xl p-6 border border-border transition-all duration-500"
+    const transformClasses = {
+      1: "md:translate-y-0",
+      2: "md:translate-y-8",
+      3: "md:translate-y-16"
+    }
+    const zIndexClasses = {
       1: "z-10",
       2: "z-20",
       3: "z-30"
-    }[step]
+    }
+    const activeClasses = activeStep === step ? 
+      "scale-105 shadow-xl md:shadow-2xl border-primary/20 bg-background/80 backdrop-blur-sm" : ""
 
-    const activeClasses = activeStep === step 
-      ? "opacity-100 backdrop-blur-none scale-[1.02]" 
-      : activeStep > step 
-        ? "opacity-95" 
-        : "opacity-50 blur-[2px]"
-
-    return `${baseClasses} ${zIndex} ${activeClasses}`
+    return `${baseClasses} ${transformClasses[step]} ${zIndexClasses[step]} ${activeClasses}`
   }
 
   return (
@@ -108,7 +93,7 @@ export function HowItWorksSection() {
       <div className="container px-4 md:px-6">
         <div className="text-center mb-16 md:mb-24">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            How Illustration Generator works
+            How to use our AI illustration generator
           </h2>
           <p className="text-lg text-muted-foreground">
             Three easy steps to transform your ideas into professional illustrations.
@@ -116,14 +101,14 @@ export function HowItWorksSection() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
             {/* Step 1: Prompt Input */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
-              className={getStepClasses(1)}
+              transition={{ duration: 0.5 }}
+              className={getCardClasses(1)}
             >
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -145,11 +130,11 @@ export function HowItWorksSection() {
 
             {/* Step 2: Style Selection */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
-              className={getStepClasses(2)}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className={getCardClasses(2)}
             >
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -171,8 +156,9 @@ export function HowItWorksSection() {
                     {demoStyles.map((style) => (
                       <div
                         key={style.id}
-                        className={`relative rounded-lg overflow-hidden transition-all duration-200 border border-border
-                          ${selectedStyle === style.id ? 'ring-2 ring-primary ring-offset-2' : 'bg-muted/50'}`}
+                        className={`relative rounded-lg overflow-hidden transition-all duration-300 border border-border
+                          ${selectedStyle === style.id ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'bg-muted/50'}
+                          ${activeStep === 2 ? 'hover:scale-105' : ''}`}
                       >
                         <div className="relative w-full aspect-[3/2] mb-1.5">
                           <Image
@@ -189,7 +175,9 @@ export function HowItWorksSection() {
                     ))}
                   </div>
                   <Button 
-                    className="w-full"
+                    className={`w-full transition-all duration-300 ${
+                      isGenerateEnabled && !isGenerating ? 'scale-105' : ''
+                    }`}
                     disabled={!isGenerateEnabled || isGenerating}
                     variant={isGenerateEnabled ? "default" : "outline"}
                   >
@@ -211,11 +199,11 @@ export function HowItWorksSection() {
 
             {/* Step 3: Result */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
-              className={getStepClasses(3)}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className={getCardClasses(3)}
             >
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -226,7 +214,8 @@ export function HowItWorksSection() {
                   Download in multiple formats
                 </p>
                 <div className="space-y-4">
-                  <div className="bg-muted/50 rounded-lg p-4">
+                  <div className={`bg-muted/50 rounded-lg p-4 transition-all duration-300 
+                    ${activeStep === 3 && showPreview ? 'scale-105' : ''}`}>
                     <div className="aspect-[3/2] relative flex items-center justify-center rounded-md overflow-hidden">
                       {isGenerating ? (
                         <p className="text-sm text-muted-foreground animate-pulse">
@@ -255,14 +244,18 @@ export function HowItWorksSection() {
                   </div>
                   <div className="flex gap-2">
                     <Button 
-                      className="w-full" 
+                      className={`w-full transition-all duration-300 ${
+                        showPreview ? 'scale-105' : ''
+                      }`}
                       variant="outline" 
                       disabled={!showPreview}
                     >
                       Download PNG
                     </Button>
                     <Button 
-                      className="w-full" 
+                      className={`w-full transition-all duration-300 ${
+                        showPreview ? 'scale-105' : ''
+                      }`}
                       variant="outline" 
                       disabled={!showPreview}
                     >

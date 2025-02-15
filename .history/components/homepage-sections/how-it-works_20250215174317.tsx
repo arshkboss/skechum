@@ -8,16 +8,6 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 
-// Animation timing constants (in milliseconds)
-const TIMINGS = {
-  TYPING_SPEED: 40,        // Speed of each character typing
-  STYLE_SELECT_DELAY: 800, // Delay before style selection starts
-  GENERATE_ENABLE_DELAY: 500, // Delay before generate button enables
-  GENERATE_START_DELAY: 800,  // Delay before generation starts
-  GENERATE_DURATION: 1500,    // How long generation takes
-  TRANSITION_DURATION: 300,   // Duration of blur/focus transitions
-} as const
-
 export function HowItWorksSection() {
   const [typedText, setTypedText] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -30,6 +20,7 @@ export function HowItWorksSection() {
 
   // Typing animation effect
   useEffect(() => {
+    // Start with step 1
     setActiveStep(1)
     
     let currentIndex = 0
@@ -49,17 +40,18 @@ export function HowItWorksSection() {
             // Start generating after showing enabled state
             setTimeout(() => {
               setIsGenerating(true)
+              // Move to step 3
               setActiveStep(3)
-              // Show generating state
+              // Show generating state for 2 seconds
               setTimeout(() => {
                 setIsGenerating(false)
                 setShowPreview(true)
-              }, TIMINGS.GENERATE_DURATION)
-            }, TIMINGS.GENERATE_START_DELAY)
-          }, TIMINGS.GENERATE_ENABLE_DELAY)
-        }, TIMINGS.STYLE_SELECT_DELAY)
+              }, 2000)
+            }, 1000)
+          }, 500)
+        }, 1000)
       }
-    }, TIMINGS.TYPING_SPEED)
+    }, 100)
 
     return () => clearInterval(typingInterval)
   }, [])
@@ -86,7 +78,8 @@ export function HowItWorksSection() {
   ]
 
   const getStepClasses = (step: number) => {
-    const baseClasses = `relative bg-background rounded-xl shadow-lg p-6 border border-border transition-all duration-${TIMINGS.TRANSITION_DURATION}`
+    const baseClasses = "relative bg-background rounded-xl shadow-lg md:shadow-2xl p-6 border border-border transition-all duration-500"
+   
     
     const zIndex = {
       1: "z-10",
@@ -95,12 +88,12 @@ export function HowItWorksSection() {
     }[step]
 
     const activeClasses = activeStep === step 
-      ? "opacity-100 backdrop-blur-none scale-[1.02]" 
+      ? "opacity-100 backdrop-blur-none" 
       : activeStep > step 
-        ? "opacity-95" 
-        : "opacity-50 blur-[2px]"
+        ? "opacity-90" 
+        : "opacity-50 blur-sm"
 
-    return `${baseClasses} ${zIndex} ${activeClasses}`
+    return `${baseClasses}  ${zIndex} ${activeClasses}`
   }
 
   return (
@@ -116,13 +109,13 @@ export function HowItWorksSection() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
             {/* Step 1: Prompt Input */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
+              transition={{ duration: 0.5 }}
               className={getStepClasses(1)}
             >
               <div className="mb-6">
@@ -145,10 +138,10 @@ export function HowItWorksSection() {
 
             {/* Step 2: Style Selection */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               className={getStepClasses(2)}
             >
               <div className="mb-6">
@@ -211,10 +204,10 @@ export function HowItWorksSection() {
 
             {/* Step 3: Result */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: TIMINGS.TRANSITION_DURATION / 1000 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               className={getStepClasses(3)}
             >
               <div className="mb-6">

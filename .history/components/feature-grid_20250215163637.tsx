@@ -26,14 +26,35 @@ const styles: Style[] = [
     description: "Minimalist black & white Notion-style illustrations",
     image: "/styles/notion-minimal.png",
     color: false
-  },
+  },/*
+  {
+    id: "line-art",
+    name: "Line Art",
+    description: "Elegant line drawings with clean strokes",
+    image: "/styles/line-art.png",
+    color: false
+  },*/
   {
     id: "watercolor",
     name: "Watercolor",
     description: "Soft and dreamy watercolor illustrations",
     image: "/styles/watercolor.png",
     color: true
-  }
+  }/*,
+  {
+    id: "flat-design",
+    name: "Flat Design",
+    description: "Modern flat illustrations with bold colors",
+    image: "/styles/flat-design.png",
+    color: true
+  },
+  {
+    id: "sketch",
+    name: "Sketch",
+    description: "Hand-drawn sketch style illustrations",
+    image: "/styles/sketch.png",
+    color: true
+  }*/
 ]
 
 
@@ -45,13 +66,13 @@ export function FeatureGrid({ className }: FeatureGridProps) {
   return (
     <div className={cn(
       "max-w-6xl mx-auto",
-      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8",
+      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center",
       className
     )}>
       {styles.map((style) => (
         <Card 
           key={style.id}
-          className=" hover:bg-accent"
+          className="group cursor-pointer overflow-hidden transition-colors hover:bg-accent"
         >
           <div className="aspect-[16/10] relative overflow-hidden">
             <img 
